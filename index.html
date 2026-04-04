@@ -359,6 +359,8 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
   </div>
 </div>
 
+<!-- Naver Maps SDK: callback=initMap 으로 비동기 로드 → initMap 함수 호출 -->
+<script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=v3x4sdbnyg&submodules=geocoder&callback=initMap"></script>
 <script>
 // ══════════════════════════════════════════════
 // 1. officialRates 데이터 (2025.2.1 시행, 광주하남교육지원청)
@@ -398,6 +400,20 @@ let markers = [];
 const MONTHLY_WEEKS = 4.3;
 const VWORLD_KEY = '1A6C5661-FDA4-36B0-B78C-3B9969E7951A';
 
+// ── 공식 인증 실패 핸들러 (window.navermap_authFailure)
+window.navermap_authFailure = function() {
+  const mapEl = document.getElementById('map');
+  mapEl.style.background = '#FEF2F2';
+  mapEl.innerHTML =
+    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:12px;padding:24px;text-align:center">' +
+    '<div style="font-size:48px">🔐</div>' +
+    '<div style="font-size:18px;font-weight:800;color:#DC2626">Naver Maps 인증 실패</div>' +
+    '<div style="font-size:13px;color:#7F1D1D;line-height:1.8;background:white;padding:16px;border-radius:12px;border:1px solid #FCA5A5">' +
+    '<b>NCP 콘솔 → Services → Application Services → Maps<br>→ taegomap → [수정] → Web 서비스 URL 확인</b><br><br>' +
+    '<code style="background:#fee2e2;padding:4px 10px;border-radius:6px;font-size:14px;font-weight:bold">https://gitsong123.github.io</code>' +
+    '</div></div>';
+};
+
 // ══════════════════════════════════════════════
 // 3. 지도 초기화 (Naver Maps &callback=initMap 으로 호출됨)
 // ══════════════════════════════════════════════
@@ -429,21 +445,6 @@ function initMap() {
   cadastralLayer.setMap(map);
 
   // 지도 클릭
-  // 인증 실패 감지 (map 초기화 이후에 등록해야 동작)
-  naver.maps.Event.addListener(map, 'auth_failed', function() {
-    document.getElementById('map').style.background = '#FEF2F2';
-    document.getElementById('map').innerHTML =
-      '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:12px;padding:24px;text-align:center">' +
-      '<div style="font-size:48px">🔐</div>' +
-      '<div style="font-size:18px;font-weight:800;color:#DC2626">Naver Maps 인증 실패</div>' +
-      '<div style="font-size:13px;color:#7F1D1D;line-height:1.8;background:white;padding:16px;border-radius:12px;border:1px solid #FCA5A5">' +
-      '<b>NCP 콘솔에서 도메인을 등록해주세요</b><br><br>' +
-      'Services → Application Services → Maps<br>→ taegomap 앱 → [수정]<br><br>' +
-      'Web 서비스 URL에 아래 추가:<br>' +
-      '<code style="background:#fee2e2;padding:4px 10px;border-radius:6px;font-size:14px;font-weight:bold">https://gitsong123.github.io</code>' +
-      '</div></div>';
-  });
-
   naver.maps.Event.addListener(map, 'click', (e) => {
     currentLatlng = e.coord;
     reverseGeocode(currentLatlng);
@@ -1021,7 +1022,5 @@ function goMyLocation() {
 // ══════════════════════════════════════════════
 renderFilterBar();
 </script>
-<!-- Naver Maps SDK: 위 script에서 initMap 함수가 정의된 후 로드 → callback으로 호출 -->
-<script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=v3x4sdbnyg&submodules=geocoder&callback=initMap"></script>
 </body>
 </html>
