@@ -54,17 +54,23 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
 .logo-text { font-size: 17px; font-weight: 800; color: var(--c-text); letter-spacing: -0.5px; }
 .logo-sub { font-size: 11px; color: var(--c-text-3); font-weight: 500; }
 
-/* 모드 토글 */
-.mode-toggle {
-  display: flex; gap: 4px; background: var(--c-bg); border-radius: 10px; padding: 3px;
+/* 모드 바 */
+.mode-bar {
+  position: fixed; z-index: 101;
+  left: 0; right: 0;
+  top: calc(113px + env(safe-area-inset-top, 0px));
+  padding: 6px 12px;
+  background: rgba(255,255,255,0.96); backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(229,231,235,0.4);
+  display: flex; gap: 6px; align-items: center;
 }
 .mode-btn {
-  padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700;
-  border: none; cursor: pointer; transition: all .2s; color: var(--c-text-2); background: transparent;
+  padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 700;
+  border: 1.5px solid var(--c-border); cursor: pointer; transition: all .15s;
+  color: var(--c-text-2); background: white;
 }
-.mode-btn.active { background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
-.mode-btn.active.edu { color: var(--c-primary); }
-.mode-btn.active.food { color: var(--c-food); }
+.mode-btn.active.edu { background: var(--c-primary-light); border-color: var(--c-primary); color: var(--c-primary); }
+.mode-btn.active.food { background: var(--c-food-light); border-color: var(--c-food); color: var(--c-food); }
 
 /* ── 필터 칩 ── */
 .filter-bar {
@@ -72,7 +78,7 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
   left: 0; right: 0; overflow-x: auto; white-space: nowrap;
   padding: 8px 12px; display: flex; gap: 6px; scrollbar-width: none;
   transition: top .3s;
-  top: calc(57px + env(safe-area-inset-top, 0px));
+  top: calc(153px + env(safe-area-inset-top, 0px));
   background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(229,231,235,0.5);
 }
@@ -310,6 +316,93 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
 .empty-text { font-size: 15px; font-weight: 700; color: var(--c-text-2); margin-bottom: 4px; }
 .empty-sub { font-size: 13px; color: var(--c-text-3); }
 
+
+
+/* ── 행정구역 오버레이 ── */
+.dong-label {
+  background: rgba(13,148,136,0.92); color: white;
+  padding: 6px 14px; border-radius: 10px;
+  font-size: 14px; font-weight: 800; white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  pointer-events: none;
+}
+.dong-loading {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.7); color: white; padding: 8px 16px;
+  border-radius: 20px; font-size: 12px; font-weight: 600; z-index: 500;
+  display: none;
+}
+
+/* ── 검색 바 ── */
+.search-bar {
+  position: fixed; z-index: 101;
+  left: 0; right: 0;
+  top: calc(57px + env(safe-area-inset-top, 0px));
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.96); backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(229,231,235,0.5);
+  display: flex; gap: 8px; align-items: center;
+}
+.search-input-wrap {
+  flex: 1; display: flex; align-items: center; gap: 8px;
+  background: var(--c-bg); border-radius: 12px; padding: 0 12px;
+  border: 1.5px solid var(--c-border); transition: border-color .15s;
+}
+.search-input-wrap:focus-within { border-color: var(--c-primary); background: white; }
+.search-input-wrap input {
+  flex: 1; border: none; background: transparent; outline: none;
+  font-size: 14px; font-weight: 600; color: var(--c-text);
+  padding: 10px 0; font-family: inherit;
+}
+.search-input-wrap input::placeholder { color: var(--c-text-3); font-weight: 500; }
+.search-clear { font-size: 16px; cursor: pointer; color: var(--c-text-3); padding: 4px; display: none; }
+.search-btn {
+  width: 40px; height: 40px; border-radius: 12px; border: none; cursor: pointer;
+  background: var(--c-primary); color: white; font-size: 16px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; transition: background .15s;
+}
+.search-btn:active { background: var(--c-primary-dark); }
+
+/* 검색 결과 드롭다운 */
+.search-results {
+  position: fixed; z-index: 300;
+  left: 12px; right: 12px;
+  background: white; border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  max-height: 60vh; overflow-y: auto;
+  display: none;
+}
+.search-results.visible { display: block; }
+.search-result-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--c-border);
+  transition: background .1s;
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:active { background: var(--c-bg); }
+.result-icon {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.result-icon.food { background: var(--c-food-light); }
+.result-icon.edu { background: var(--c-primary-light); }
+.result-icon.default { background: var(--c-bg); }
+.result-name { font-size: 14px; font-weight: 700; color: var(--c-text); margin-bottom: 2px; }
+.result-addr { font-size: 12px; color: var(--c-text-3); }
+.result-category { font-size: 11px; font-weight: 600; color: var(--c-primary); margin-top: 2px; }
+.search-loading { padding: 20px; text-align: center; color: var(--c-text-2); font-size: 14px; }
+.search-empty { padding: 24px; text-align: center; }
+.search-empty-icon { font-size: 32px; margin-bottom: 8px; }
+.search-empty-text { font-size: 14px; color: var(--c-text-2); font-weight: 600; }
+.search-empty-sub { font-size: 12px; color: var(--c-text-3); margin-top: 4px; }
+
+/* 검색 마커 */
+.search-marker-label {
+  background: var(--c-food); color: white; padding: 4px 10px; border-radius: 20px;
+  font-size: 12px; font-weight: 700; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
 /* 툴팁 */
 .tooltip {
   position: fixed; background: #1F2937; color: white; font-size: 12px; font-weight: 600;
@@ -330,16 +423,36 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
       <div class="logo-sub">태전·고산 법령 가성비</div>
     </div>
   </div>
-  <div class="mode-toggle">
-    <button class="mode-btn edu active" onclick="setMode('edu')">🎓 교육</button>
-    <button class="mode-btn food" onclick="setMode('food')">🍜 먹거리</button>
+</div>
+
+
+<!-- 검색 바 -->
+<div class="search-bar" id="searchBar">
+  <div class="search-input-wrap">
+    <span style="font-size:16px">🔍</span>
+    <input type="text" id="searchInput" placeholder="음식점, 카페, 학원 검색..." 
+      oninput="onSearchInput(this.value)" onkeydown="if(event.key==='Enter')doSearch()">
+    <span class="search-clear" id="searchClear" onclick="clearSearch()">✕</span>
   </div>
+  <button class="search-btn" onclick="doSearch()">🔍</button>
+</div>
+
+<!-- 검색 결과 -->
+<div class="search-results" id="searchResults"></div>
+
+
+<!-- 모드 바 (검색바 아래, 필터 위, 좌측 정렬) -->
+<div class="mode-bar" id="modeBar">
+  <button class="mode-btn edu active" onclick="setMode('edu')">🎓 교육</button>
+  <button class="mode-btn food" onclick="setMode('food')">🍜 먹거리</button>
 </div>
 
 <!-- 필터 칩 바 -->
 <div class="filter-bar" id="filterBar">
   <!-- JS로 렌더링 -->
 </div>
+
+<div class="dong-loading" id="dongLoading">🗺️ 행정구역 로딩 중...</div>
 
 <!-- 지도 -->
 <div id="map"></div>
@@ -449,6 +562,9 @@ function initMap() {
     currentLatlng = e.coord;
     reverseGeocode(currentLatlng);
   });
+
+  // 행정구역 경계 로딩 (initMap 완료 후 비동기 실행)
+  loadDongBoundaries();
 }
 
 // ══════════════════════════════════════════════
@@ -1015,6 +1131,297 @@ function goMyLocation() {
     reverseGeocode(latlng);
   }, () => alert('위치 권한을 허용해주세요.'));
 }
+
+
+
+
+
+// ══════════════════════════════════════════════
+// 행정구역 경계 표시 (VWorld Data API + Naver Maps Polygon)
+// ══════════════════════════════════════════════
+let dongPolygons = [];
+let dongLabelMarkers = [];
+
+async function loadDongBoundaries() {
+  const loadingEl = document.getElementById('dongLoading');
+  if(loadingEl) loadingEl.style.display = 'block';
+
+  const targets = [
+    { name: '태전동', filter: '경기도 광주시 태전동' },
+    { name: '고산동', filter: '경기도 광주시 고산동' },
+  ];
+  const allHoles = []; // 구멍(동 경계 내부) 좌표 배열
+  const dongCentroids = []; // 레이블용 중심점
+
+  for(const target of targets) {
+    try {
+      const url = `https://api.vworld.kr/req/data?service=data&request=GetFeature` +
+        `&data=LT_C_ADEMD_INFO` +
+        `&key=${VWORLD_KEY}` +
+        `&domain=https://gitsong123.github.io` +
+        `&attrFilter=full_nm:=:${encodeURIComponent(target.filter)}` +
+        `&crs=EPSG:4326&format=json&size=10`;
+
+      const resp = await fetch(url);
+      const data = await resp.json();
+
+      if(data.response?.status !== 'OK') {
+        console.warn('[태고맵] 동 경계 로딩 실패:', target.name, data.response?.status);
+        continue;
+      }
+
+      const features = data.response.result.featureCollection.features;
+      const dongCoordSets = [];
+
+      features.forEach(f => {
+        const geom = f.geometry;
+        if(!geom) return;
+
+        if(geom.type === 'Polygon') {
+          // GeoJSON: [lng, lat] → Naver: LatLng(lat, lng)
+          const ring = geom.coordinates[0].map(c => new naver.maps.LatLng(c[1], c[0]));
+          allHoles.push(ring);
+          dongCoordSets.push(ring);
+        } else if(geom.type === 'MultiPolygon') {
+          geom.coordinates.forEach(poly => {
+            const ring = poly[0].map(c => new naver.maps.LatLng(c[1], c[0]));
+            allHoles.push(ring);
+            dongCoordSets.push(ring);
+          });
+        }
+      });
+
+      // 경계 하이라이트 폴리곤
+      dongCoordSets.forEach(coords => {
+        const p = new naver.maps.Polygon({
+          map,
+          paths: [coords],
+          fillColor: '#0D9488',
+          fillOpacity: 0.06,
+          strokeColor: '#0D9488',
+          strokeWeight: 2.5,
+          strokeOpacity: 0.9,
+          strokeStyle: 'solid',
+          clickable: false,
+          zIndex: 5,
+        });
+        dongPolygons.push(p);
+      });
+
+      // 중심점 계산
+      if(dongCoordSets.length > 0) {
+        const centroid = calcCentroid(dongCoordSets[0]);
+        dongCentroids.push({ name: target.name, pos: centroid });
+      }
+    } catch(e) {
+      console.warn('[태고맵] 동 경계 fetch 오류:', target.name, e);
+    }
+  }
+
+  if(allHoles.length > 0) {
+    // 외부 마스크: 한반도를 덮는 큰 사각형에서 동 경계를 구멍으로 뚫음
+    const outerRing = [
+      new naver.maps.LatLng(39.0, 124.0),
+      new naver.maps.LatLng(39.0, 130.0),
+      new naver.maps.LatLng(34.0, 130.0),
+      new naver.maps.LatLng(34.0, 124.0),
+      new naver.maps.LatLng(39.0, 124.0),
+    ];
+
+    const maskPolygon = new naver.maps.Polygon({
+      map,
+      paths: [outerRing, ...allHoles],
+      fillColor: '#0F172A',
+      fillOpacity: 0.52,
+      strokeWeight: 0,
+      clickable: false,
+      zIndex: 4,
+    });
+    dongPolygons.push(maskPolygon);
+  }
+
+  // 동 이름 레이블 마커
+  dongCentroids.forEach(({ name, pos }) => {
+    const m = new naver.maps.Marker({
+      map,
+      position: pos,
+      clickable: false,
+      icon: {
+        content: `<div class="dong-label">${name}</div>`,
+        anchor: new naver.maps.Point(32, 16),
+      },
+      zIndex: 10,
+    });
+    dongLabelMarkers.push(m);
+  });
+
+  if(loadingEl) loadingEl.style.display = 'none';
+  console.log('[태고맵] 행정구역 경계 로딩 완료:', allHoles.length, '개 폴리곤');
+}
+
+function calcCentroid(coords) {
+  let lat = 0, lng = 0;
+  coords.forEach(c => { lat += c.lat(); lng += c.lng(); });
+  return new naver.maps.LatLng(lat / coords.length, lng / coords.length);
+}
+
+
+// ══════════════════════════════════════════════
+// 검색 기능
+// ══════════════════════════════════════════════
+let searchMarkers = [];
+let searchTimeout = null;
+const TAEGO_CENTER = { lat: 37.3892, lng: 127.2456 };
+
+// 검색 카테고리 아이콘 매핑
+const CATEGORY_ICON = {
+  '음식점': '🍜', '카페': '☕', '베이커리': '🥐', '치킨': '🍗',
+  '피자': '🍕', '분식': '🍱', '한식': '🥘', '중식': '🥟',
+  '일식': '🍱', '양식': '🥩', '술집': '🍺', '편의점': '🏪',
+  '학원': '📚', '교습소': '📝', '독서실': '📖',
+};
+
+function getCategoryIcon(category) {
+  for (const [key, icon] of Object.entries(CATEGORY_ICON)) {
+    if (category && category.includes(key)) return icon;
+  }
+  return currentMode === 'food' ? '🍴' : '🏫';
+}
+
+function onSearchInput(val) {
+  const clear = document.getElementById('searchClear');
+  if(clear) clear.style.display = val ? 'block' : 'none';
+  if(!val.trim()) { hideResults(); return; }
+
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => doSearch(), 600);
+}
+
+function clearSearch() {
+  const inp = document.getElementById('searchInput');
+  if(inp) { inp.value = ''; inp.focus(); }
+  const clear = document.getElementById('searchClear');
+  if(clear) clear.style.display = 'none';
+  hideResults();
+  clearSearchMarkers();
+}
+
+function hideResults() {
+  const el = document.getElementById('searchResults');
+  if(el) { el.classList.remove('visible'); el.innerHTML = ''; }
+}
+
+function showResults(html) {
+  const el = document.getElementById('searchResults');
+  if(!el) return;
+  // Position below search bar
+  const bar = document.getElementById('searchBar');
+  if(bar) {
+    const rect = bar.getBoundingClientRect();
+    el.style.top = (rect.bottom + 4) + 'px'; el.style.left = '12px'; el.style.right = '12px';
+  }
+  el.innerHTML = html;
+  el.classList.add('visible');
+}
+
+function clearSearchMarkers() {
+  searchMarkers.forEach(m => m.setMap(null));
+  searchMarkers = [];
+}
+
+function doSearch() {
+  const query = document.getElementById('searchInput')?.value?.trim();
+  if(!query) return;
+
+  const modeHint = currentMode === 'food' ? ' 음식점 카페' : ' 학원';
+  const fullQuery = query + ' 태전동' + modeHint;
+
+  showResults('<div class="search-loading">🔍 검색 중...</div>');
+
+  naver.maps.Service.geocode({ query: fullQuery }, (status, res) => {
+    if(status !== naver.maps.Service.Status.OK || !res.v2.addresses.length) {
+      // fallback: search without mode hint
+      naver.maps.Service.geocode({ query: query + ' 광주시 태전동' }, (s2, r2) => {
+        if(s2 !== naver.maps.Service.Status.OK || !r2.v2.addresses.length) {
+          showResults(`<div class="search-empty">
+            <div class="search-empty-icon">😕</div>
+            <div class="search-empty-text">검색 결과가 없습니다</div>
+            <div class="search-empty-sub">"태전동", "고산동" 등 동명을 함께 입력해보세요</div>
+          </div>`);
+          return;
+        }
+        renderSearchResults(r2.v2.addresses, query);
+      });
+      return;
+    }
+    renderSearchResults(res.v2.addresses, query);
+  });
+}
+
+function renderSearchResults(addresses, query) {
+  clearSearchMarkers();
+
+  const items = addresses.slice(0, 8).map((addr, i) => {
+    const name = addr.addressElements?.find(e => e.types.includes('BUILDING_NAME'))?.longName || query;
+    const roadAddr = addr.roadAddress || '';
+    const jibunAddr = addr.jibunAddress || '';
+    const displayAddr = roadAddr || jibunAddr;
+    const cat = currentMode === 'food' ? '음식점·카페' : '학원·교습소';
+    const icon = getCategoryIcon(name);
+    const iconClass = currentMode === 'food' ? 'food' : 'edu';
+
+    return `<div class="search-result-item" onclick="selectSearchResult(${addr.y},${addr.x},'${escQ(name)}','${escQ(displayAddr)}')">
+      <div class="result-icon ${iconClass}">${icon}</div>
+      <div style="flex:1;min-width:0">
+        <div class="result-name">${escH(name.length > 20 ? name.slice(0,20)+'...' : name)}</div>
+        <div class="result-addr">${escH(displayAddr.length > 35 ? displayAddr.slice(0,35)+'...' : displayAddr)}</div>
+        <div class="result-category">${cat}</div>
+      </div>
+      <div style="font-size:12px;color:var(--c-text-3)">▶</div>
+    </div>`;
+  });
+
+  // Place markers on map
+  addresses.slice(0, 8).forEach((addr, i) => {
+    if(!map) return;
+    const pos = new naver.maps.LatLng(parseFloat(addr.y), parseFloat(addr.x));
+    const name = addr.addressElements?.find(e => e.types.includes('BUILDING_NAME'))?.longName || query;
+    const marker = new naver.maps.Marker({
+      position: pos,
+      map: map,
+      title: name,
+      icon: {
+        content: `<div style="background:${currentMode==='food'?'#7C3AED':'#0D9488'};color:white;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.25)">${name.length > 12 ? name.slice(0,12)+'...' : name}</div>`,
+        anchor: new naver.maps.Point(0, 30),
+      }
+    });
+    naver.maps.Event.addListener(marker, 'click', () => {
+      selectSearchResult(addr.y, addr.x, name, addr.roadAddress || addr.jibunAddress);
+    });
+    searchMarkers.push(marker);
+  });
+
+  showResults(items.join(''));
+}
+
+function selectSearchResult(lat, lng, name, addr) {
+  if(!map) return;
+  const pos = new naver.maps.LatLng(parseFloat(lat), parseFloat(lng));
+  map.setCenter(pos);
+  map.setZoom(18);
+  currentLatlng = pos;
+  currentAddr = {
+    jibun: name || addr.split(' ').slice(-2).join(' '),
+    full: addr
+  };
+  hideResults();
+  renderPanel();
+  openPanel();
+}
+
+function escQ(s) { return (s||'').replace(/'/g,"\'").replace(/"/g,'\"'); }
+function escH(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 
 // ══════════════════════════════════════════════
 // 10. 초기화 - DOM 준비 완료 시점이므로 filterBar 즉시 렌더
