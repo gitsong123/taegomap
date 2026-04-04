@@ -403,6 +403,38 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
+
+/* ── 데스크톱: 우측 사이드바 패널 ── */
+@media (min-width: 768px) {
+  .panel {
+    top: 0; right: 0; bottom: 0;
+    left: auto; width: 400px;
+    border-radius: 0;
+    border-left: 1px solid var(--c-border);
+    transform: translateX(105%);
+    max-height: 100vh;
+    box-shadow: -8px 0 40px rgba(0,0,0,0.12);
+    padding-bottom: 0;
+  }
+  .panel.open { transform: translateX(0); }
+  .panel-handle { display: none; }
+  .panel-close-btn { display: flex !important; }
+  .fab { right: calc(416px + 16px); }
+  /* 지도 우측 여백 (패널 열릴 때) */
+  body.panel-open #map { margin-right: 400px; transition: margin-right .35s cubic-bezier(0.4,0,0.2,1); }
+  body #map { transition: margin-right .35s cubic-bezier(0.4,0,0.2,1); }
+}
+/* 패널 상단 닫기 버튼 (데스크톱 전용) */
+.panel-close-btn {
+  display: none;
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--c-bg); border: none; cursor: pointer;
+  align-items: center; justify-content: center;
+  font-size: 16px; z-index: 10; color: var(--c-text-2);
+}
+.panel-close-btn:hover { background: var(--c-border); }
+
 /* 툴팁 */
 .tooltip {
   position: fixed; background: #1F2937; color: white; font-size: 12px; font-weight: 600;
@@ -461,8 +493,9 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
 <button class="fab" onclick="goMyLocation()" title="내 위치">📍</button>
 
 <!-- 하단 패널 -->
-<div class="panel" id="panel">
+<div class="panel" id="panel" style="position:fixed">
   <div class="panel-handle" onclick="closePanel()"></div>
+  <button class="panel-close-btn" onclick="closePanel()">✕</button>
   <div class="panel-scroll" id="panelContent">
     <div class="empty-state">
       <div class="empty-icon">📌</div>
@@ -613,6 +646,26 @@ function setFilter(f) {
   renderFilterBar();
 }
 
+
+// ── 카테고리 → 모드 자동 감지
+const FOOD_CATS_KW = ['음식점','카페','제과','베이커리','치킨','피자','분식','한식','중식','일식','양식','술집','바','커피','레스토랑','패스트푸드','뷔페','고기','삼겹','갈비','냉면','국밥','순대','떡볶이','김밥','면요리','해산물','횟집'];
+const EDU_CATS_KW  = ['학원','교습','독서실','학교','교육','유치원','어린이집'];
+
+function detectMode(category, name) {
+  const str = ((category||'') + ' ' + (name||'')).toLowerCase();
+  if(FOOD_CATS_KW.some(k => str.includes(k))) return 'food';
+  if(EDU_CATS_KW.some(k => str.includes(k)))  return 'edu';
+  return null; // 감지 불가
+}
+
+function applyMode(mode) {
+  if(!mode || mode === currentMode) return;
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.mode-btn.${currentMode}`)?.classList.add('active');
+  renderFilterBar();
+}
+
 // ══════════════════════════════════════════════
 // 5. 역지오코딩 → 패널 렌더
 // ══════════════════════════════════════════════
@@ -637,9 +690,11 @@ function reverseGeocode(latlng) {
 
 function openPanel() {
   document.getElementById('panel').classList.add('open');
+  document.body.classList.add('panel-open');
 }
 function closePanel() {
   document.getElementById('panel').classList.remove('open');
+  document.body.classList.remove('panel-open');
 }
 
 // ══════════════════════════════════════════════
@@ -1431,11 +1486,11 @@ function renderNaverResults(items, query) {
         anchor: new naver.maps.Point(0, 30),
       }
     });
-    naver.maps.Event.addListener(marker, 'click', () => selectSearchResult(pos.lat(), pos.lng(), name, addr));
+    const dm = detectMode(cat, name); naver.maps.Event.addListener(marker, 'click', () => selectSearchResult(pos.lat(), pos.lng(), name, addr, dm));
     searchMarkers.push(marker);
 
     const lat = pos.lat(), lng = pos.lng();
-    return `<div class="search-result-item" onclick="selectSearchResult(${lat},${lng},'${escQ(name)}','${escQ(addr)}')">
+    return `<div class="search-result-item" onclick="selectSearchResult(${lat},${lng},'${escQ(name)}','${escQ(addr)}','${escQ(dm||'')}')">  
       <div class="result-icon ${iconClass}">${icon}</div>
       <div style="flex:1;min-width:0">
         <div class="result-name">${escH(name)}</div>
@@ -1471,10 +1526,10 @@ function renderGeocoderResults(addresses, query) {
         anchor: new naver.maps.Point(0, 30),
       }
     });
-    naver.maps.Event.addListener(marker, 'click', () => selectSearchResult(addr.y, addr.x, name, displayAddr));
+    naver.maps.Event.addListener(marker, 'click', () => selectSearchResult(addr.y, addr.x, name, displayAddr, currentMode));
     searchMarkers.push(marker);
 
-    return `<div class="search-result-item" onclick="selectSearchResult(${addr.y},${addr.x},'${escQ(name)}','${escQ(displayAddr)}')">
+    return `<div class="search-result-item" onclick="selectSearchResult(${addr.y},${addr.x},'${escQ(name)}','${escQ(displayAddr)}','${escQ(currentMode)}')">  
       <div class="result-icon ${iconClass}">${icon}</div>
       <div style="flex:1;min-width:0">
         <div class="result-name">${escH(name.length>22?name.slice(0,22)+'…':name)}</div>
@@ -1491,15 +1546,16 @@ function renderGeocoderResults(addresses, query) {
 
 function renderSearchResults(addresses, query) { renderGeocoderResults(addresses, query); }
 
-function selectSearchResult(lat, lng, name, addr) {
+function selectSearchResult(lat, lng, name, addr, mode) {
   if(!map) return;
+  applyMode(mode);  // 카테고리 기반 모드 자동 전환
   const pos = new naver.maps.LatLng(parseFloat(lat), parseFloat(lng));
   map.setCenter(pos);
   map.setZoom(18);
   currentLatlng = pos;
   currentAddr = {
-    jibun: name || addr.split(' ').slice(-2).join(' '),
-    full: addr
+    jibun: name || (addr||'').split(' ').slice(-2).join(' '),
+    full: addr || ''
   };
   hideResults();
   renderPanel();
