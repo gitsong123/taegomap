@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>태고맵 | 태전·고산 법령기반 가성비 지도</title>
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -318,6 +321,52 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
 
 
 
+
+/* ── Firebase 강의료 통계 ── */
+.stats-section { margin: 16px 0; }
+.stats-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.stats-title { font-size: 14px; font-weight: 800; color: var(--c-text); }
+.stats-count { font-size: 12px; color: var(--c-text-3); font-weight: 600; }
+.stats-bar-group { display: flex; flex-direction: column; gap: 8px; }
+.stats-bar-row { display: flex; align-items: center; gap: 8px; }
+.stats-bar-label { font-size: 12px; font-weight: 700; color: var(--c-text-2); width: 40px; flex-shrink: 0; }
+.stats-bar-wrap { flex: 1; background: var(--c-border); border-radius: 6px; height: 10px; overflow: hidden; }
+.stats-bar-fill { height: 100%; border-radius: 6px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+.stats-bar-val { font-size: 12px; font-weight: 800; color: var(--c-text); min-width: 70px; text-align: right; }
+.stats-loading { text-align: center; padding: 20px; color: var(--c-text-3); font-size: 13px; }
+.submit-btn {
+  width: 100%; padding: 15px; border-radius: 14px; border: none; cursor: pointer;
+  font-size: 15px; font-weight: 800; color: white; margin-top: 12px;
+  background: linear-gradient(135deg, #0D9488, #0F766E);
+  box-shadow: 0 4px 16px rgba(13,148,136,0.3); transition: all .2s; letter-spacing: -.3px;
+}
+.submit-btn:active { transform: scale(.98); }
+.submit-btn:disabled { opacity: .5; cursor: not-allowed; }
+.submit-success {
+  background: var(--c-safe-light); border: 1.5px solid #86EFAC; border-radius: 12px;
+  padding: 14px 16px; text-align: center; font-size: 14px; font-weight: 700; color: var(--c-safe);
+}
+.fee-step { background: var(--c-bg); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+.fee-step-title { font-size: 13px; font-weight: 800; color: var(--c-text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.day-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.day-chip {
+  padding: 7px 13px; border-radius: 20px; font-size: 13px; font-weight: 700;
+  border: 1.5px solid var(--c-border); background: white; cursor: pointer; transition: all .15s;
+  color: var(--c-text-2);
+}
+.day-chip.sel { border-color: var(--c-primary); background: var(--c-primary-light); color: var(--c-primary); }
+.fee-input-row { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid var(--c-border); border-radius: 10px; padding: 10px 14px; }
+.fee-input-row:focus-within { border-color: var(--c-primary); }
+.fee-input-row input { flex: 1; border: none; outline: none; font-size: 18px; font-weight: 800; color: var(--c-text); }
+.fee-unit { font-size: 13px; color: var(--c-text-2); font-weight: 600; }
+.recent-list { margin-top: 12px; }
+.recent-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--c-border); font-size: 13px; }
+.recent-item:last-child { border-bottom: none; }
+.recent-label { color: var(--c-text-2); }
+.recent-val { font-weight: 800; color: var(--c-text); }
+.recent-excess { color: var(--c-danger); }
+.recent-safe { color: var(--c-safe); }
+
 /* ── 행정구역 오버레이 ── */
 .dong-label {
   background: rgba(13,148,136,0.92); color: white;
@@ -331,6 +380,33 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
   background: rgba(0,0,0,0.7); color: white; padding: 8px 16px;
   border-radius: 20px; font-size: 12px; font-weight: 600; z-index: 500;
   display: none;
+}
+
+
+/* ── 지도 위 가격 마커 ── */
+.price-marker-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  pointer-events: none; user-select: none;
+}
+.price-badge {
+  display: flex; align-items: center; gap: 4px;
+  padding: 5px 11px; border-radius: 20px;
+  font-size: 12px; font-weight: 800; white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.22); line-height: 1.2;
+  border: 1.5px solid rgba(255,255,255,0.3);
+}
+.price-badge.safe  { background: #0D9488; color: white; }
+.price-badge.warn  { background: #D97706; color: white; }
+.price-badge.over  { background: #DC2626; color: white; }
+.price-badge.food  { background: #7C3AED; color: white; }
+.price-badge-name  { font-size: 10px; opacity: .8; font-weight: 600; max-width: 70px; overflow: hidden; text-overflow: ellipsis; }
+.price-badge-count { font-size: 10px; opacity: .7; margin-left: 2px; }
+.price-tail {
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid currentColor;
+  margin-top: -1px;
 }
 
 /* ── 검색 바 ── */
@@ -509,6 +585,33 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
 <script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=v3x4sdbnyg&submodules=geocoder&callback=initMap"></script>
 <script>
 // ══════════════════════════════════════════════
+// Firebase 초기화
+// ══════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyBl6q_7Lot32qwNAuqpiP7xCdwbBvLtHck",
+  authDomain: "taegomap.firebaseapp.com",
+  projectId: "taegomap",
+  storageBucket: "taegomap.firebasestorage.app",
+  messagingSenderId: "846079794485",
+  appId: "1:846079794485:web:a2d39a3cebe16d4573007c",
+  measurementId: "G-RVJ7Z45JC3"
+};
+let db;
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  console.log('[태고맵] Firebase 연결 완료');
+} catch(e) { console.warn('[태고맵] Firebase 초기화 실패:', e); }
+
+// 장소 키 생성 (주소 해시)
+function makePlaceKey(name, addr) {
+  const raw = (name + addr).replace(/\s+/g, '');
+  let h = 0;
+  for(const c of raw) h = ((h << 5) - h + c.charCodeAt(0)) | 0;
+  return 'p' + Math.abs(h).toString(36).slice(0, 12);
+}
+
+// ══════════════════════════════════════════════
 // 1. officialRates 데이터 (2025.2.1 시행, 광주하남교육지원청)
 // ══════════════════════════════════════════════
 const OFFICIAL_RATES = {
@@ -596,6 +699,13 @@ function initMap() {
   });
   cadastralLayer.setMap(map);
 
+  // 줌 변경 시 마커 재배치 (일정 간격으로 throttle)
+  let zoomRefreshTimer = null;
+  naver.maps.Event.addListener(map, 'zoom_changed', () => {
+    clearTimeout(zoomRefreshTimer);
+    zoomRefreshTimer = setTimeout(loadPriceMarkers, 800);
+  });
+
   // 지도 클릭
   naver.maps.Event.addListener(map, 'click', (e) => {
     currentLatlng = e.coord;
@@ -604,6 +714,8 @@ function initMap() {
 
   // 행정구역 경계 로딩 (initMap 완료 후 비동기 실행)
   loadDongBoundaries();
+  // 가격 마커 로딩
+  setTimeout(loadPriceMarkers, 1500); // Firebase 초기화 후 로드
 }
 
 // ══════════════════════════════════════════════
@@ -710,19 +822,11 @@ function renderPanel() {
   attachEvents();
 }
 
-// ── 교육 패널 ──
 function renderEduPanel() {
   const domainOpts = DOMAINS.map(d =>
     `<option value="${d}" ${d==='보습'?'selected':''}>${DOMAIN_EMOJI[d]} ${d}</option>`
   ).join('');
-
-  const gradesByDomain = {
-    '보습':['초등','중등','고등'], '진학지도':['전체'],
-    '외국어':['전체'], '음악':['유·초·중·고','입시'], '미술':['유·초·중·고','입시'],
-    '무용':['유·초·중·고','입시'], '독서실':['다인실','1인실'],
-    '정보':['일반'], '기타':['일반'], '개인과외':['초·중·고']
-  };
-  const gradeOpts = gradesByDomain['보습'].map(g =>
+  const gradeOpts = ['초등','중등','고등'].map(g =>
     `<option value="${g}" ${g==='중등'?'selected':''}>${g}</option>`
   ).join('');
 
@@ -741,14 +845,48 @@ function renderEduPanel() {
       <a href="https://www.goeyi.kr" target="_blank" class="reg-link">교육청 확인 ↗</a>
     </div>
 
-    <div class="select-row">
-      <select class="styled-select" id="selDomain" onchange="onDomainChange()">${domainOpts}</select>
-      <select class="styled-select" id="selGrade" style="max-width:120px">${gradeOpts}</select>
+    <!-- STEP 1: 교습 기본 정보 -->
+    <div class="fee-step">
+      <div class="fee-step-title">① 교습 정보</div>
+      <div class="select-row" style="margin-bottom:10px">
+        <select class="styled-select" id="selDomain" onchange="onDomainChange()">${domainOpts}</select>
+        <select class="styled-select" id="selGrade" style="max-width:110px">${gradeOpts}</select>
+      </div>
+      <div style="font-size:12px;color:var(--c-text-2);font-weight:700;margin-bottom:6px">📅 주 교습 횟수</div>
+      <div class="day-chips" id="sessionChips">
+        ${[1,2,3,4,5].map(n=>`<div class="day-chip ${n===3?'sel':''}" onclick="selSessions(${n})" id="sc${n}">주 ${n}회</div>`).join('')}
+      </div>
+      <div style="font-size:12px;color:var(--c-text-2);font-weight:700;margin:8px 0 6px">⏱️ 1회 교습 시간</div>
+      <div class="day-chips" id="minuteChips">
+        ${[30,40,50,60,80,90,100,120].map(m=>`<div class="day-chip ${m===60?'sel':''}" onclick="selMinutes(${m})" id="mc${m}">${m}분</div>`).join('')}
+      </div>
     </div>
 
-    <div id="rateBody">
-      ${renderEduRateBody('보습','중등')}
+    <!-- STEP 2: 법정 교습비 -->
+    <div id="legalFeeBlock"></div>
+
+    <!-- STEP 3: 강의료 직접 제보 -->
+    <div class="fee-step">
+      <div class="fee-step-title">② 실제 납부 강의료 제보</div>
+      <div class="fee-input-row">
+        <input type="number" id="inpActualFee" placeholder="월 납부 금액 입력" inputmode="numeric">
+        <span class="fee-unit">원/월</span>
+      </div>
+      <div style="font-size:11px;color:var(--c-text-3);margin-top:6px">익명으로 제보됩니다. 교재비·차량비 제외한 순수 수강료만 입력해주세요.</div>
+      <button class="submit-btn" id="submitBtn" onclick="submitEduFee()">📤 강의료 제보 등록</button>
+      <div id="submitResult"></div>
     </div>
+
+    <!-- STEP 4: Firebase 통계 -->
+    <div class="fee-step">
+      <div class="stats-header">
+        <div class="stats-title">📊 주민 제보 통계</div>
+        <div class="stats-count" id="statsCount">로딩 중...</div>
+      </div>
+      <div id="statsArea"><div class="stats-loading">⏳ 통계 로딩 중...</div></div>
+    </div>
+
+    ${renderReportSection('edu')}
   `;
 }
 
@@ -976,12 +1114,13 @@ function renderReportSection(type) {
 // 7. 이벤트 연결
 // ══════════════════════════════════════════════
 function attachEvents() {
-  // 파라미터 입력 → 법정 교습비 실시간 갱신
-  ['inpMin','inpSessions'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.addEventListener('input', updateLegalCard);
-  });
-  // 도메인 변경
+  if(currentMode === 'edu') {
+    // 교육 패널 초기화
+    setTimeout(() => {
+      updateLegalFeeBlock();
+      loadEduStats();
+    }, 50);
+  }
 }
 
 function onDomainChange() {
@@ -1065,6 +1204,334 @@ function judgeExcess(legal, actual) {
     pctAbs: Math.abs(pct)
   };
 }
+
+
+// ══════════════════════════════════════════════
+// 교육 패널 인터랙션 & Firebase 연동
+// ══════════════════════════════════════════════
+let _sessions = 3, _minutes = 60;
+
+function selSessions(n) {
+  _sessions = n;
+  document.querySelectorAll('.day-chip[id^="sc"]').forEach(el => el.classList.remove('sel'));
+  document.getElementById('sc'+n)?.classList.add('sel');
+  updateLegalFeeBlock();
+}
+function selMinutes(m) {
+  _minutes = m;
+  document.querySelectorAll('.day-chip[id^="mc"]').forEach(el => el.classList.remove('sel'));
+  document.getElementById('mc'+m)?.classList.add('sel');
+  updateLegalFeeBlock();
+}
+
+function updateLegalFeeBlock() {
+  const domain = document.getElementById('selDomain')?.value;
+  const grade  = document.getElementById('selGrade')?.value;
+  if(!domain || !grade) return;
+
+  const key = Object.keys(OFFICIAL_RATES).find(k => OFFICIAL_RATES[k].domain===domain && OFFICIAL_RATES[k].grade===grade);
+  const rate = key ? OFFICIAL_RATES[key] : null;
+  const el = document.getElementById('legalFeeBlock');
+  if(!el) return;
+
+  if(!rate) { el.innerHTML = ''; return; }
+
+  if(rate.isFlat) {
+    el.innerHTML = `
+      <div class="fee-step" style="background:linear-gradient(135deg,#0D9488,#0F766E);color:white;margin-bottom:12px">
+        <div style="font-size:12px;opacity:.85;margin-bottom:8px;font-weight:700">⚖️ 법정 기준 (정액제)</div>
+        <div style="font-size:22px;font-weight:900">1일 ${rate.flatDay.toLocaleString()}원 · 월 ${rate.flatMonth.toLocaleString()}원</div>
+        <div style="font-size:11px;opacity:.7;margin-top:4px">학원법 §15③ · 광주하남교육지원청 2025.2.1 시행</div>
+      </div>`;
+    return;
+  }
+  const legalFee = calcFee(rate.ratePerMin, _minutes, _sessions);
+  el.innerHTML = `
+    <div class="fee-step" style="background:linear-gradient(135deg,#0D9488,#0F766E);color:white;margin-bottom:12px">
+      <div style="font-size:12px;opacity:.85;margin-bottom:4px;font-weight:700">⚖️ 법정 최대 교습비</div>
+      <div style="font-size:26px;font-weight:900">${legalFee.toLocaleString()}원/월</div>
+      <div style="font-size:11px;opacity:.75;margin-top:6px">${rate.ratePerMin}원/분 × ${_minutes}분 × 주${_sessions}회 × 4.3주</div>
+      <div style="font-size:11px;opacity:.65">학원법 §15③ · 광주하남교육지원청 2025.2.1</div>
+    </div>`;
+}
+
+function onDomainChange() {
+  const domain = document.getElementById('selDomain')?.value;
+  const gradesByDomain = {
+    '보습':['초등','중등','고등'],'진학지도':['전체'],'외국어':['전체'],
+    '음악':['유·초·중·고','입시'],'미술':['유·초·중·고','입시'],'무용':['유·초·중·고','입시'],
+    '독서실':['다인실','1인실'],'정보':['일반'],'기타':['일반'],'개인과외':['초·중·고']
+  };
+  const grades = gradesByDomain[domain] || ['전체'];
+  const sel = document.getElementById('selGrade');
+  if(sel) sel.innerHTML = grades.map(g => `<option value="${g}">${g}</option>`).join('');
+  updateLegalFeeBlock();
+  loadEduStats();
+}
+
+// ── Firebase: 강의료 제보 저장
+async function submitEduFee() {
+  if(!db) { alert('Firebase 연결 실패. 잠시 후 다시 시도해주세요.'); return; }
+  const domain   = document.getElementById('selDomain')?.value;
+  const grade    = document.getElementById('selGrade')?.value;
+  const actual   = parseInt(document.getElementById('inpActualFee')?.value);
+  if(!actual || actual < 1000) { alert('유효한 강의료를 입력해주세요 (1,000원 이상)'); return; }
+
+  const key = Object.keys(OFFICIAL_RATES).find(k => OFFICIAL_RATES[k].domain===domain && OFFICIAL_RATES[k].grade===grade);
+  const rate = key ? OFFICIAL_RATES[key] : null;
+  const legalFee = rate && !rate.isFlat ? calcFee(rate.ratePerMin, _minutes, _sessions) : (rate?.flatMonth || 0);
+  const excessPct = legalFee ? parseFloat(((actual - legalFee) / legalFee * 100).toFixed(1)) : 0;
+
+  const placeKey = makePlaceKey(currentAddr.jibun, currentAddr.full);
+
+  const btn = document.getElementById('submitBtn');
+  if(btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
+
+  try {
+    const lat = currentLatlng ? currentLatlng.lat() : null;
+    const lng = currentLatlng ? currentLatlng.lng() : null;
+    await db.collection('eduFees').add({
+      placeKey,
+      placeName:  currentAddr.jibun,
+      address:    currentAddr.full,
+      lat, lng, // 지도 위 마커 표시용
+      domain, grade,
+      minutesPerSession: _minutes,
+      sessionsPerWeek:   _sessions,
+      monthlyFee: actual,
+      legalFee,
+      excessPct,
+      type: 'edu',
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const result = document.getElementById('submitResult');
+    if(result) result.innerHTML = `<div class="submit-success" style="margin-top:10px">
+      ✅ 제보가 등록되었습니다! ${actual.toLocaleString()}원 / 법정 ${legalFee.toLocaleString()}원
+      ${excessPct > 5 ? '<br>⚠️ 법정 교습비를 초과합니다.' : ''}
+    </div>`;
+
+    document.getElementById('inpActualFee').value = '';
+    loadEduStats(); // 통계 새로고침
+    loadPriceMarkers(); // 지도 마커 갱신
+  } catch(e) {
+    alert('저장 실패: ' + e.message);
+    console.error(e);
+  } finally {
+    if(btn) { btn.disabled = false; btn.textContent = '📤 강의료 제보 등록'; }
+  }
+}
+
+
+// ══════════════════════════════════════════════
+// 지도 위 평균가격 마커 (Firebase 연동)
+// ══════════════════════════════════════════════
+let priceMarkerList = []; // 현재 표시 중인 마커
+
+function formatPriceShort(val) {
+  if(val >= 10000) return (val / 10000).toFixed(1).replace(/\.0$/, '') + '만';
+  if(val >= 1000) return Math.round(val / 1000) + '천';
+  return val.toLocaleString();
+}
+
+// 두 좌표 간 거리 (미터 근사)
+function distanceM(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// 겹침 방지: 인접 마커를 수직으로 쌓기
+function calcMarkerOffsets(items) {
+  const DIST_THRESH = 120; // 120m 이내는 인접으로 판단
+  const groups = [];
+
+  items.forEach(item => {
+    let placed = false;
+    for(const g of groups) {
+      const ref = g[0];
+      if(distanceM(item.lat, item.lng, ref.lat, ref.lng) < DIST_THRESH) {
+        g.push(item);
+        placed = true;
+        break;
+      }
+    }
+    if(!placed) groups.push([item]);
+  });
+
+  const result = [];
+  groups.forEach(g => {
+    // 그룹 중심 좌표
+    const avgLat = g.reduce((s, x) => s + x.lat, 0) / g.length;
+    const avgLng = g.reduce((s, x) => s + x.lng, 0) / g.length;
+    g.forEach((item, idx) => {
+      result.push({ ...item, anchorLat: avgLat, anchorLng: avgLng, stackIdx: idx, stackTotal: g.length });
+    });
+  });
+
+  return result;
+}
+
+async function loadPriceMarkers() {
+  if(!db || !map) return;
+
+  // 기존 마커 제거
+  priceMarkerList.forEach(m => m.setMap(null));
+  priceMarkerList = [];
+
+  try {
+    const snap = await db.collection('eduFees')
+      .where('lat', '!=', null)
+      .limit(300)
+      .get();
+
+    // placeKey별 집계
+    const groups = {};
+    snap.docs.forEach(doc => {
+      const d = doc.data();
+      if(!d.placeKey || !d.lat || !d.lng || !d.monthlyFee) return;
+      if(!groups[d.placeKey]) {
+        groups[d.placeKey] = {
+          name: d.placeName || '',
+          lat: d.lat, lng: d.lng,
+          fees: [], legalFees: [], type: d.type || 'edu'
+        };
+      }
+      groups[d.placeKey].fees.push(d.monthlyFee);
+      if(d.legalFee) groups[d.placeKey].legalFees.push(d.legalFee);
+    });
+
+    // 마커 데이터 생성
+    const markerItems = Object.entries(groups).map(([key, g]) => {
+      const avg = Math.round(g.fees.reduce((a,b)=>a+b,0) / g.fees.length);
+      const avgLegal = g.legalFees.length ? Math.round(g.legalFees.reduce((a,b)=>a+b,0)/g.legalFees.length) : 0;
+      const excessPct = avgLegal ? (avg - avgLegal) / avgLegal * 100 : 0;
+      return { key, name: g.name, lat: g.lat, lng: g.lng, avg, count: g.fees.length, excessPct, type: g.type };
+    });
+
+    // 겹침 방지 오프셋 계산
+    const positioned = calcMarkerOffsets(markerItems);
+
+    positioned.forEach(item => {
+      const cls = item.type === 'food' ? 'food'
+                : item.excessPct > 10 ? 'over'
+                : item.excessPct > 0  ? 'warn'
+                : 'safe';
+
+      const tailColor = { safe:'#0D9488', warn:'#D97706', over:'#DC2626', food:'#7C3AED' }[cls];
+
+      // 수직 스택: stackIdx × 36px
+      const stackOffsetY = 36 + item.stackIdx * 36;
+
+      const marker = new naver.maps.Marker({
+        position: new naver.maps.LatLng(item.anchorLat, item.anchorLng),
+        map,
+        clickable: true,
+        zIndex: 20 + item.stackIdx,
+        icon: {
+          content: `
+            <div class="price-marker-wrap" style="padding-bottom:${stackOffsetY}px">
+              <div class="price-badge ${cls}">
+                <span>${formatPriceShort(item.avg)}원</span>
+                <span class="price-badge-count">(${item.count})</span>
+              </div>
+              <div class="price-badge-name" style="color:${tailColor};font-size:10px;font-weight:700;margin-top:2px;text-shadow:0 0 4px white">${item.name.slice(0,10)}</div>
+              ${item.stackIdx === item.stackTotal - 1
+                ? `<div class="price-tail" style="color:${tailColor}"></div>`
+                : ''}
+            </div>`,
+          anchor: new naver.maps.Point(30, stackOffsetY + 28),
+        },
+      });
+
+      // 클릭 시 해당 장소 패널 열기
+      naver.maps.Event.addListener(marker, 'click', () => {
+        currentAddr = { jibun: item.name, full: item.name };
+        currentLatlng = new naver.maps.LatLng(item.lat, item.lng);
+        map.setCenter(currentLatlng);
+        renderPanel();
+        openPanel();
+      });
+
+      priceMarkerList.push(marker);
+    });
+
+    console.log('[태고맵] 가격 마커 표시:', positioned.length, '개');
+  } catch(e) {
+    console.warn('[태고맵] 가격 마커 로딩 실패:', e);
+  }
+}
+
+// ── Firebase: 통계 로딩
+async function loadEduStats() {
+  if(!db) return;
+  const placeKey = makePlaceKey(currentAddr.jibun, currentAddr.full);
+  const statsArea  = document.getElementById('statsArea');
+  const statsCount = document.getElementById('statsCount');
+  if(!statsArea) return;
+  statsArea.innerHTML = '<div class="stats-loading">⏳ 통계 로딩 중...</div>';
+
+  try {
+    const snap = await db.collection('eduFees')
+      .where('placeKey', '==', placeKey)
+      .orderBy('submittedAt', 'desc')
+      .limit(50)
+      .get();
+
+    if(snap.empty) {
+      if(statsCount) statsCount.textContent = '제보 없음';
+      statsArea.innerHTML = '<div class="stats-loading" style="color:var(--c-text-3)">아직 제보된 강의료가 없습니다.<br>첫 번째로 제보해보세요! 🙋</div>';
+      return;
+    }
+
+    const fees = snap.docs.map(d => d.data()).filter(d => d.monthlyFee > 0);
+    const amounts = fees.map(f => f.monthlyFee);
+    const minFee  = Math.min(...amounts);
+    const maxFee  = Math.max(...amounts);
+    const avgFee  = Math.round(amounts.reduce((a,b) => a+b, 0) / amounts.length);
+    const legalFee = fees[0]?.legalFee || 0;
+
+    if(statsCount) statsCount.textContent = `총 ${fees.length}건`;
+
+    const barColor = (val) => legalFee && val > legalFee * 1.05 ? '#DC2626' : val > legalFee ? '#F59E0B' : '#0D9488';
+    const barW = (val) => legalFee ? Math.min(100, Math.round(val / (maxFee * 1.1) * 100)) : 60;
+
+    const recentHtml = fees.slice(0,5).map(f => {
+      const diff = legalFee ? f.monthlyFee - legalFee : 0;
+      const cls  = diff > 0 ? 'recent-excess' : 'recent-safe';
+      const sign = diff > 0 ? '+' : '';
+      return `<div class="recent-item">
+        <span class="recent-label">${f.domain||''} ${f.grade||''} 주${f.sessionsPerWeek||'?'}회 ${f.minutesPerSession||'?'}분</span>
+        <span class="recent-val ${cls}">${f.monthlyFee.toLocaleString()}원 <span style="font-size:11px">(${sign}${diff.toLocaleString()}원)</span></span>
+      </div>`;
+    }).join('');
+
+    statsArea.innerHTML = `
+      <div class="stats-bar-group">
+        ${[['최저',minFee,'#16A34A'],['평균',avgFee,'#2563EB'],['최고',maxFee,'#DC2626']].map(([label,val,color]) => `
+          <div class="stats-bar-row">
+            <span class="stats-bar-label">${label}</span>
+            <div class="stats-bar-wrap"><div class="stats-bar-fill" style="width:${barW(val)}%;background:${color}"></div></div>
+            <span class="stats-bar-val">${val.toLocaleString()}원</span>
+          </div>`).join('')}
+        ${legalFee ? `<div class="stats-bar-row" style="margin-top:4px;opacity:.7">
+          <span class="stats-bar-label" style="font-size:10px">법정</span>
+          <div class="stats-bar-wrap"><div class="stats-bar-fill" style="width:${barW(legalFee)}%;background:#6B7280;opacity:.7"></div></div>
+          <span class="stats-bar-val" style="font-size:11px">${legalFee.toLocaleString()}원</span>
+        </div>` : ''}
+      </div>
+      <div class="recent-list" style="margin-top:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--c-text-2);margin-bottom:6px">최근 제보</div>
+        ${recentHtml}
+      </div>`;
+  } catch(e) {
+    statsArea.innerHTML = '<div class="stats-loading" style="color:var(--c-danger)">통계 로딩 실패</div>';
+    console.error('[태고맵] 통계 로딩 오류:', e);
+  }
+}
+
 
 function analyzeEdu(key, ratePerMin) {
   const min = parseInt(document.getElementById('inpMin')?.value) || 60;
@@ -1203,121 +1670,156 @@ function goMyLocation() {
 let dongPolygons = [];
 let dongLabelMarkers = [];
 
+// ── VWorld JSONP 헬퍼 (공식 샘플 패턴: dataType:'jsonp' → callback 파라미터)
+function vworldJsonp(params) {
+  return new Promise((resolve, reject) => {
+    const cbName = '_vw_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    window[cbName] = function(data) {
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+      resolve(data);
+    };
+    const qs = Object.entries(params)
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+    const script = document.createElement('script');
+    script.src = `https://api.vworld.kr/req/data?${qs}&callback=${cbName}`;
+    script.onerror = (e) => {
+      delete window[cbName];
+      reject(new Error('VWorld JSONP 오류: ' + script.src));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+// ── EPSG:3857 → WGS84 변환 (공식 샘플의 EPSG:3857 좌표계 사용)
+function epsg3857ToLatLng(x, y) {
+  const lng = x / 20037508.34 * 180;
+  const lat = Math.atan(Math.exp(y / 20037508.34 * Math.PI)) * 360 / Math.PI - 90;
+  return new naver.maps.LatLng(lat, lng);
+}
+
 async function loadDongBoundaries() {
   const loadingEl = document.getElementById('dongLoading');
   if(loadingEl) loadingEl.style.display = 'block';
 
-  const targets = [
-    { name: '태전동', filter: '경기도 광주시 태전동' },
-    { name: '고산동', filter: '경기도 광주시 고산동' },
-  ];
-  const allHoles = []; // 구멍(동 경계 내부) 좌표 배열
-  const dongCentroids = []; // 레이블용 중심점
+  // 공식 샘플2의 광주시 BBOX (EPSG:3857) 그대로 활용
+  const GWANGJU_BBOX = 'BOX(14115930.245713329,4461368.662961091,14182736.208434572,4524811.396437787)';
+  const TARGET_DONGS = ['태전동', '고산동'];
 
-  for(const target of targets) {
-    try {
-      const url = `https://api.vworld.kr/req/data?service=data&request=GetFeature` +
-        `&data=LT_C_ADEMD_INFO` +
-        `&key=${VWORLD_KEY}` +
-        `&domain=https://gitsong123.github.io` +
-        `&attrFilter=full_nm:=:${encodeURIComponent(target.filter)}` +
-        `&crs=EPSG:4326&format=json&size=10`;
+  try {
+    // 단일 JSONP 호출로 광주시 내 모든 읍면동 가져오기 → 태전동/고산동 필터
+    const data = await vworldJsonp({
+      service:   'data',
+      version:   '2.0',
+      request:   'GetFeature',
+      key:       VWORLD_KEY,
+      domain:    'https://gitsong123.github.io',
+      format:    'json',
+      size:      '1000',
+      page:      '1',
+      data:      'LT_C_ADEMD_INFO',
+      geomFilter: GWANGJU_BBOX,
+      crs:       'EPSG:3857',
+      geometry:  'true',
+      attribute: 'true',
+    });
 
-      const resp = await fetch(url);
-      const data = await resp.json();
+    if(data.response?.status !== 'OK') {
+      console.warn('[태고맵] VWorld 응답 오류:', data.response?.status, data.response?.error);
+      if(loadingEl) loadingEl.style.display = 'none';
+      return;
+    }
 
-      if(data.response?.status !== 'OK') {
-        console.warn('[태고맵] 동 경계 로딩 실패:', target.name, data.response?.status);
-        continue;
+    const features = data.response.result.featureCollection.features;
+    console.log('[태고맵] VWorld 응답 피처 수:', features.length);
+
+    const allHoles = [];
+    const dongCentroids = [];
+
+    features.forEach(feature => {
+      const dongName = feature.properties?.emd_kor_nm;
+      if(!TARGET_DONGS.includes(dongName)) return;
+
+      const geom = feature.geometry;
+      if(!geom) return;
+
+      const coordSets = [];
+
+      if(geom.type === 'Polygon') {
+        // EPSG:3857 [x,y] → WGS84 LatLng
+        const ring = geom.coordinates[0].map(c => epsg3857ToLatLng(c[0], c[1]));
+        coordSets.push(ring);
+      } else if(geom.type === 'MultiPolygon') {
+        geom.coordinates.forEach(poly => {
+          const ring = poly[0].map(c => epsg3857ToLatLng(c[0], c[1]));
+          coordSets.push(ring);
+        });
       }
 
-      const features = data.response.result.featureCollection.features;
-      const dongCoordSets = [];
-
-      features.forEach(f => {
-        const geom = f.geometry;
-        if(!geom) return;
-
-        if(geom.type === 'Polygon') {
-          // GeoJSON: [lng, lat] → Naver: LatLng(lat, lng)
-          const ring = geom.coordinates[0].map(c => new naver.maps.LatLng(c[1], c[0]));
-          allHoles.push(ring);
-          dongCoordSets.push(ring);
-        } else if(geom.type === 'MultiPolygon') {
-          geom.coordinates.forEach(poly => {
-            const ring = poly[0].map(c => new naver.maps.LatLng(c[1], c[0]));
-            allHoles.push(ring);
-            dongCoordSets.push(ring);
-          });
-        }
-      });
-
-      // 경계 하이라이트 폴리곤
-      dongCoordSets.forEach(coords => {
+      coordSets.forEach(coords => {
+        allHoles.push(coords);
+        // 경계 하이라이트 폴리곤
         const p = new naver.maps.Polygon({
           map,
           paths: [coords],
           fillColor: '#0D9488',
-          fillOpacity: 0.06,
+          fillOpacity: 0.07,
           strokeColor: '#0D9488',
           strokeWeight: 2.5,
-          strokeOpacity: 0.9,
-          strokeStyle: 'solid',
+          strokeOpacity: 1,
           clickable: false,
           zIndex: 5,
         });
         dongPolygons.push(p);
       });
 
-      // 중심점 계산
-      if(dongCoordSets.length > 0) {
-        const centroid = calcCentroid(dongCoordSets[0]);
-        dongCentroids.push({ name: target.name, pos: centroid });
+      if(coordSets.length > 0) {
+        dongCentroids.push({ name: dongName, pos: calcCentroid(coordSets[0]) });
       }
-    } catch(e) {
-      console.warn('[태고맵] 동 경계 fetch 오류:', target.name, e);
+    });
+
+    if(allHoles.length > 0) {
+      // 외부 마스크: 한반도 사각형에서 태전동·고산동을 구멍으로 뚫기
+      const outerRing = [
+        new naver.maps.LatLng(39.5, 123.0),
+        new naver.maps.LatLng(39.5, 131.0),
+        new naver.maps.LatLng(33.0, 131.0),
+        new naver.maps.LatLng(33.0, 123.0),
+        new naver.maps.LatLng(39.5, 123.0),
+      ];
+      const maskPolygon = new naver.maps.Polygon({
+        map,
+        paths: [outerRing, ...allHoles],
+        fillColor: '#0F172A',
+        fillOpacity: 0.50,
+        strokeWeight: 0,
+        clickable: false,
+        zIndex: 4,
+      });
+      dongPolygons.push(maskPolygon);
+      console.log('[태고맵] 행정구역 마스크 완료:', allHoles.length, '개 폴리곤 (태전동+고산동)');
+    } else {
+      console.warn('[태고맵] 태전동/고산동 폴리곤을 찾지 못했습니다. 응답 피처:', features.map(f=>f.properties?.emd_kor_nm));
     }
-  }
 
-  if(allHoles.length > 0) {
-    // 외부 마스크: 한반도를 덮는 큰 사각형에서 동 경계를 구멍으로 뚫음
-    const outerRing = [
-      new naver.maps.LatLng(39.0, 124.0),
-      new naver.maps.LatLng(39.0, 130.0),
-      new naver.maps.LatLng(34.0, 130.0),
-      new naver.maps.LatLng(34.0, 124.0),
-      new naver.maps.LatLng(39.0, 124.0),
-    ];
-
-    const maskPolygon = new naver.maps.Polygon({
-      map,
-      paths: [outerRing, ...allHoles],
-      fillColor: '#0F172A',
-      fillOpacity: 0.52,
-      strokeWeight: 0,
-      clickable: false,
-      zIndex: 4,
+    // 동 이름 레이블
+    dongCentroids.forEach(({ name, pos }) => {
+      const m = new naver.maps.Marker({
+        map, position: pos, clickable: false,
+        icon: {
+          content: `<div class="dong-label">${name}</div>`,
+          anchor: new naver.maps.Point(32, 16),
+        },
+        zIndex: 10,
+      });
+      dongLabelMarkers.push(m);
     });
-    dongPolygons.push(maskPolygon);
-  }
 
-  // 동 이름 레이블 마커
-  dongCentroids.forEach(({ name, pos }) => {
-    const m = new naver.maps.Marker({
-      map,
-      position: pos,
-      clickable: false,
-      icon: {
-        content: `<div class="dong-label">${name}</div>`,
-        anchor: new naver.maps.Point(32, 16),
-      },
-      zIndex: 10,
-    });
-    dongLabelMarkers.push(m);
-  });
+  } catch(e) {
+    console.warn('[태고맵] 행정구역 로딩 실패:', e.message);
+  }
 
   if(loadingEl) loadingEl.style.display = 'none';
-  console.log('[태고맵] 행정구역 경계 로딩 완료:', allHoles.length, '개 폴리곤');
 }
 
 function calcCentroid(coords) {
