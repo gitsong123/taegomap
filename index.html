@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>태고맵 | 태전·고산 법령기반 가성비 지도</title>
-<script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=sRKNfcBMfT579bcW1pGl84qchORnWKqujRVmg5Or&submodules=geocoder&callback=initMap"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1002,9 +1001,12 @@ function goMyLocation() {
 }
 
 // ══════════════════════════════════════════════
-// 10. 초기화
+// 10. 초기화 - DOM 준비 완료 시점이므로 filterBar 즉시 렌더
+// initMap은 Naver SDK 로드 완료 후 callback으로 호출됨
 // ══════════════════════════════════════════════
 renderFilterBar();
 </script>
+<!-- Naver Maps SDK: 위 script에서 initMap 함수가 정의된 후 로드 → callback으로 호출 -->
+<script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=v3x4sdbnyg&submodules=geocoder&callback=initMap"></script>
 </body>
 </html>
