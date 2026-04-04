@@ -306,6 +306,58 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
 .cp-label { font-size: 11px; font-weight: 700; color: var(--c-text-2); }
 .cp-btn.voted .cp-label { color: var(--c-food); }
 
+/* ── 별점 평가 ── */
+.star-rating-group { display: flex; flex-direction: column; gap: 10px; }
+.star-row { display: flex; align-items: center; justify-content: space-between; }
+.star-label { font-size: 13px; font-weight: 700; color: var(--c-text); min-width: 80px; }
+.stars { display: flex; gap: 4px; }
+.star {
+  font-size: 24px; cursor: pointer; color: #D1D5DB; line-height: 1;
+  transition: color .1s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.star.active, .star.hover { color: #F59E0B; transform: scale(1.15); }
+
+/* ── 태그 칩 ── */
+.tag-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag-chip {
+  padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  border: 1.5px solid var(--c-border); background: white; cursor: pointer;
+  color: var(--c-text-2); transition: all .12s;
+}
+.tag-chip.selected { border-color: var(--c-food); background: var(--c-food-light); color: var(--c-food); }
+
+/* ── In-feed 광고 ── */
+.infeed-ad {
+  border: 1px solid var(--c-border); border-radius: var(--radius);
+  background: var(--c-bg); overflow: hidden; margin-bottom: 12px;
+}
+.infeed-ad-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 12px; border-bottom: 1px solid var(--c-border);
+}
+.ad-label {
+  font-size: 10px; font-weight: 800; color: var(--c-text-3);
+  border: 1px solid var(--c-border); border-radius: 4px; padding: 1px 5px; letter-spacing: .5px;
+}
+.ad-close-btn {
+  font-size: 14px; color: var(--c-text-3); background: none; border: none;
+  cursor: pointer; padding: 2px 4px; line-height: 1;
+}
+.infeed-ad-body {
+  min-height: 72px; display: flex; align-items: center; justify-content: center;
+  padding: 12px 16px; gap: 14px;
+}
+.infeed-ad-body a { text-decoration: none; display: flex; align-items: center; gap: 14px; width: 100%; }
+.ad-icon { font-size: 32px; flex-shrink: 0; }
+.ad-copy { flex: 1; }
+.ad-copy-title { font-size: 14px; font-weight: 800; color: var(--c-text); margin-bottom: 2px; }
+.ad-copy-sub { font-size: 12px; color: var(--c-text-2); font-weight: 500; }
+.ad-cta {
+  font-size: 12px; font-weight: 800; color: white;
+  background: var(--c-food); border-radius: 8px; padding: 6px 12px; flex-shrink: 0;
+}
+
 /* 지역화폐 배지 */
 .gyugi-badge {
   display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
@@ -581,8 +633,15 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
   </div>
 </div>
 
-<!-- Naver Maps SDK: callback=initMap 으로 비동기 로드 → initMap 함수 호출 -->
-<script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=v3x4sdbnyg&submodules=geocoder&callback=initMap"></script>
+<!-- Naver Maps SDK: 도메인별 키 자동 선택 -->
+<script>
+(function(){
+  var key = location.hostname === 'taegomap.web.app' ? 'dp690i8adl' : 'v3x4sdbnyg';
+  var s = document.createElement('script');
+  s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + key + '&submodules=geocoder&callback=initMap';
+  document.head.appendChild(s);
+})();
+</script>
 <script>
 // ══════════════════════════════════════════════
 // Firebase 초기화
@@ -653,7 +712,8 @@ const VWORLD_KEY = '1A6C5661-FDA4-36B0-B78C-3B9969E7951A';
 // https://developers.naver.com → 애플리케이션 등록 → 검색 → 지역 선택
 const NAVER_SEARCH_ID     = 'cT8lwPWYEDzoOVMXeyKe';  // X-Naver-Client-Id
 const NAVER_SEARCH_SECRET = 'fYSU79ZaoN';  // X-Naver-Client-Secret
-const CORS_PROXY = 'https://corsproxy.io/?';
+// Firebase Function 프록시 엔드포인트 (서버사이드에서 Naver API 호출 → CORS 문제 없음)
+const NAVER_SEARCH_PROXY = '/api/naversearch';
 
 // ── 공식 인증 실패 핸들러 (window.navermap_authFailure)
 window.navermap_authFailure = function() {
@@ -665,7 +725,7 @@ window.navermap_authFailure = function() {
     '<div style="font-size:18px;font-weight:800;color:#DC2626">Naver Maps 인증 실패</div>' +
     '<div style="font-size:13px;color:#7F1D1D;line-height:1.8;background:white;padding:16px;border-radius:12px;border:1px solid #FCA5A5">' +
     '<b>NCP 콘솔 → Services → Application Services → Maps<br>→ taegomap → [수정] → Web 서비스 URL 확인</b><br><br>' +
-    '<code style="background:#fee2e2;padding:4px 10px;border-radius:6px;font-size:14px;font-weight:bold">https://gitsong123.github.io</code>' +
+    '<code style="background:#fee2e2;padding:4px 10px;border-radius:6px;font-size:14px;font-weight:bold">' + location.origin + '</code>' +
     '</div></div>';
 };
 
@@ -817,6 +877,9 @@ function renderPanel() {
   if(currentMode === 'edu') {
     el.innerHTML = renderEduPanel();
   } else {
+    // 새 장소 열 때 별점/태그 초기화
+    Object.keys(_starRatings).forEach(k => _starRatings[k] = 0);
+    _selectedTags.clear();
     el.innerHTML = renderFoodPanel();
   }
   attachEvents();
@@ -1012,11 +1075,20 @@ function renderFoodPanel() {
     </div>
 
     <div class="actual-section">
-      <div class="section-title">📊 가성비 투표 (맛·양·가격)</div>
-      <div class="food-cp-row">
-        <div class="cp-btn" id="cpTaste" onclick="toggleCP('cpTaste')"><span class="cp-emoji">😋</span><span class="cp-label">맛 👍</span></div>
-        <div class="cp-btn" id="cpAmount" onclick="toggleCP('cpAmount')"><span class="cp-emoji">🍽️</span><span class="cp-label">양 👍</span></div>
-        <div class="cp-btn" id="cpPrice" onclick="toggleCP('cpPrice')"><span class="cp-emoji">💸</span><span class="cp-label">가격 👍</span></div>
+      <div class="section-title">⭐ 상세 평가</div>
+      <div class="star-rating-group" id="starRatingGroup">
+        <div class="star-row"><span class="star-label">💸 가성비</span><div class="stars" id="stars_price_value">${[1,2,3,4,5].map(n=>`<span class="star" data-val="${n}" onclick="setStar('price_value',${n})" onmouseover="hoverStar('price_value',${n})" onmouseout="unhoverStar('price_value')">★</span>`).join('')}</div></div>
+        <div class="star-row"><span class="star-label">😋 맛</span><div class="stars" id="stars_taste">${[1,2,3,4,5].map(n=>`<span class="star" data-val="${n}" onclick="setStar('taste',${n})" onmouseover="hoverStar('taste',${n})" onmouseout="unhoverStar('taste')">★</span>`).join('')}</div></div>
+        <div class="star-row"><span class="star-label">⚡ 속도</span><div class="stars" id="stars_speed">${[1,2,3,4,5].map(n=>`<span class="star" data-val="${n}" onclick="setStar('speed',${n})" onmouseover="hoverStar('speed',${n})" onmouseout="unhoverStar('speed')">★</span>`).join('')}</div></div>
+        <div class="star-row"><span class="star-label">✨ 청결</span><div class="stars" id="stars_cleanliness">${[1,2,3,4,5].map(n=>`<span class="star" data-val="${n}" onclick="setStar('cleanliness',${n})" onmouseover="hoverStar('cleanliness',${n})" onmouseout="unhoverStar('cleanliness')">★</span>`).join('')}</div></div>
+        <div class="star-row"><span class="star-label">🧑 혼밥</span><div class="stars" id="stars_solo_friendly">${[1,2,3,4,5].map(n=>`<span class="star" data-val="${n}" onclick="setStar('solo_friendly',${n})" onmouseover="hoverStar('solo_friendly',${n})" onmouseout="unhoverStar('solo_friendly')">★</span>`).join('')}</div></div>
+      </div>
+
+      <div style="margin-top:12px;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:700;color:var(--c-text-2);margin-bottom:8px">🏷️ 태그 (복수 선택)</div>
+        <div class="tag-chips" id="tagChips">
+          ${['가성비','혼밥','단체','주차','포장','야식','점심','아이동반','반찬많음','재방문'].map(t=>`<div class="tag-chip" onclick="toggleFoodTag(this,'${t}')">${t}</div>`).join('')}
+        </div>
       </div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--c-bg);border-radius:10px;margin-bottom:8px">
@@ -1054,6 +1126,25 @@ function renderFoodPanel() {
 
     <button class="btn-analyze" onclick="analyzeFood()" style="background:var(--c-food);box-shadow:0 4px 16px rgba(124,58,237,0.3)">🍜 가성비 분석 결과 보기</button>
     <div id="foodResultArea"></div>
+
+    <!-- ② In-feed 광고: 분석 결과 하단, 신고 섹션 상단 -->
+    <div class="infeed-ad" id="infeedAd" style="display:none">
+      <div class="infeed-ad-header">
+        <span class="ad-label">광고</span>
+        <button class="ad-close-btn" onclick="document.getElementById('infeedAd').style.display='none'" aria-label="광고 닫기">✕</button>
+      </div>
+      <div class="infeed-ad-body">
+        <a href="https://www.coupang.com" target="_blank" rel="noopener" onclick="trackAdClick('infeed_coupang')">
+          <span class="ad-icon">🛒</span>
+          <div class="ad-copy">
+            <div class="ad-copy-title">쿠팡 로켓배송 식재료 특가</div>
+            <div class="ad-copy-sub">오늘만 최대 30% 할인 · 무료배송</div>
+          </div>
+          <span class="ad-cta">보러가기</span>
+        </a>
+      </div>
+    </div>
+
     ${renderReportSection('food')}
   `;
 }
@@ -1172,6 +1263,39 @@ function toggleExtras() {
 
 function toggleCP(id) {
   document.getElementById(id)?.classList.toggle('voted');
+}
+
+// ── 별점 상태
+const _starRatings = { price_value:0, taste:0, speed:0, cleanliness:0, solo_friendly:0 };
+const _selectedTags = new Set();
+
+function setStar(key, val) {
+  _starRatings[key] = val;
+  _renderStars(key);
+}
+function hoverStar(key, val) {
+  document.querySelectorAll(`#stars_${key} .star`).forEach((s,i) => {
+    s.classList.toggle('hover', i < val);
+  });
+}
+function unhoverStar(key) {
+  document.querySelectorAll(`#stars_${key} .star`).forEach((s,i) => {
+    s.classList.remove('hover');
+    s.classList.toggle('active', i < _starRatings[key]);
+  });
+}
+function _renderStars(key) {
+  document.querySelectorAll(`#stars_${key} .star`).forEach((s,i) => {
+    s.classList.toggle('active', i < _starRatings[key]);
+    s.classList.remove('hover');
+  });
+}
+function toggleFoodTag(el, tag) {
+  el.classList.toggle('selected');
+  el.classList.contains('selected') ? _selectedTags.add(tag) : _selectedTags.delete(tag);
+}
+function trackAdClick(id) {
+  if(db) db.collection('ad_clicks').add({ ad: id, ts: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
 }
 
 let priceDisplayOk = null;
@@ -1606,21 +1730,35 @@ function analyzeFlat(flatMonth) {
   );
 }
 
-function analyzeFood() {
+async function analyzeFood() {
   const price = parseInt(document.getElementById('inpFoodPrice')?.value) || 0;
   const menuName = document.getElementById('inpMenuName')?.value || '메뉴';
   if(!price) { alert('메뉴 가격을 입력해주세요.'); return; }
 
   const gyugi = document.getElementById('chkGyugi')?.checked;
-  const cpTaste = document.getElementById('cpTaste')?.classList.contains('voted');
-  const cpAmount = document.getElementById('cpAmount')?.classList.contains('voted');
-  const cpPrice = document.getElementById('cpPrice')?.classList.contains('voted');
-  const cpScore = [cpTaste,cpAmount,cpPrice].filter(Boolean).length;
 
-  const tier = price <= 5000 ? {label:'💚 초가성비', color:'var(--c-safe)', note:'5천원 이하 — 지역 최고 가성비 구간'}
-             : price <= 8000 ? {label:'🩵 일반 가성비', color:'var(--c-primary)', note:'5~8천원 — 지역 평균 가성비 구간'}
-             : price <= 10000 ? {label:'🧡 보통', color:'var(--c-warn)', note:'8천~1만원 — 지역 평균 가격대'}
-             : {label:'❤️ 고가', color:'var(--c-danger)', note:'1만원 초과 — 고급 가격대'};
+  // ── 별점 수집
+  const ratings = {
+    price_value: _starRatings.price_value,
+    taste:        _starRatings.taste,
+    speed:        _starRatings.speed,
+    cleanliness:  _starRatings.cleanliness,
+    solo_friendly:_starRatings.solo_friendly,
+  };
+  const ratingVals = Object.values(ratings).filter(v => v > 0);
+  const totalScore = ratingVals.length
+    ? Math.round(ratingVals.reduce((a,b)=>a+b,0) / ratingVals.length * 10) / 10
+    : 0;
+
+  const tier = price <= 5000 ? {label:'💚 초가성비', note:'5천원 이하 — 지역 최고 가성비 구간'}
+             : price <= 8000 ? {label:'🩵 일반 가성비', note:'5~8천원 — 지역 평균 가성비 구간'}
+             : price <= 10000 ? {label:'🧡 보통', note:'8천~1만원 — 지역 평균 가격대'}
+             : {label:'❤️ 고가', note:'1만원 초과 — 고급 가격대'};
+
+  // ── 별점 표시 텍스트
+  const starBar = (val) => val ? '★'.repeat(val) + '☆'.repeat(5-val) : '미평가';
+  const scoreEmoji = totalScore >= 4.5 ? '🤩' : totalScore >= 3.5 ? '😊' : totalScore >= 2.5 ? '🙂' : totalScore > 0 ? '😐' : '—';
+  const tags = [..._selectedTags];
 
   const resultHTML = `
     <div class="divider"></div>
@@ -1629,22 +1767,61 @@ function analyzeFood() {
     <div class="food-price-card">
       <div style="font-size:13px;opacity:.85;font-weight:700;margin-bottom:8px">🍜 ${menuName}</div>
       <div style="font-size:28px;font-weight:900">${price.toLocaleString()}원</div>
-      <div style="margin-top:8px">
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
         <span style="background:rgba(255,255,255,0.2);border-radius:6px;padding:4px 10px;font-size:13px;font-weight:700">${tier.label}</span>
-        ${gyugi ? '<span style="background:rgba(255,255,255,0.2);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;margin-left:6px">💳 경유기</span>' : ''}
+        ${gyugi ? '<span style="background:rgba(255,255,255,0.2);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700">💳 경유기</span>' : ''}
+        ${tags.map(t=>`<span style="background:rgba(255,255,255,0.15);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700">#${t}</span>`).join('')}
       </div>
       <div style="font-size:12px;opacity:.7;margin-top:8px">${tier.note}</div>
     </div>
 
     <div class="result-card neutral">
-      <div class="result-label">⭐ 주민 가성비 평가</div>
-      <div class="result-amount" style="color:var(--c-text)">${['😢','🙂','😊','🤩'][cpScore]} ${['평가 없음','한 항목 긍정','좋은 가성비','최고 가성비!'][cpScore]}</div>
-      <div class="result-sub">맛 ${cpTaste?'👍':'➖'} · 양 ${cpAmount?'👍':'➖'} · 가격 ${cpPrice?'👍':'➖'}</div>
+      <div class="result-label">⭐ 종합 별점</div>
+      <div class="result-amount" style="color:var(--c-text);font-size:22px">
+        ${scoreEmoji} ${totalScore > 0 ? totalScore.toFixed(1) + ' / 5.0' : '평가 없음'}
+      </div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--c-text-2)">
+        <div style="display:flex;justify-content:space-between"><span>💸 가성비</span><span style="color:#F59E0B">${starBar(ratings.price_value)}</span></div>
+        <div style="display:flex;justify-content:space-between"><span>😋 맛</span><span style="color:#F59E0B">${starBar(ratings.taste)}</span></div>
+        <div style="display:flex;justify-content:space-between"><span>⚡ 속도</span><span style="color:#F59E0B">${starBar(ratings.speed)}</span></div>
+        <div style="display:flex;justify-content:space-between"><span>✨ 청결</span><span style="color:#F59E0B">${starBar(ratings.cleanliness)}</span></div>
+        <div style="display:flex;justify-content:space-between"><span>🧑 혼밥</span><span style="color:#F59E0B">${starBar(ratings.solo_friendly)}</span></div>
+      </div>
     </div>
   `;
 
   const area = document.getElementById('foodResultArea');
   if(area) { area.innerHTML = resultHTML; area.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+
+  // ── In-feed 광고 노출
+  const adEl = document.getElementById('infeedAd');
+  if(adEl) adEl.style.display = 'block';
+
+  // ── Firestore 저장
+  if(db && (totalScore > 0 || price > 0)) {
+    try {
+      const placeKey = makePlaceKey(currentAddr.jibun, currentAddr.full);
+      await db.collection('ratings').doc(placeKey).set({
+        place_id: placeKey,
+        category: 'restaurant',
+        name: currentAddr.jibun || '',
+        addr: currentAddr.full || '',
+        lat: currentLatlng ? currentLatlng.lat() : null,
+        lng: currentLatlng ? currentLatlng.lng() : null,
+        menu: menuName,
+        price,
+        gyugi: gyugi || false,
+        price_display_ok: priceDisplayOk,
+        ratings: { total: totalScore, ...ratings },
+        tags,
+        timestamp: new Date().toISOString().split('T')[0],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+      console.log('[태고맵] 평가 저장 완료:', placeKey);
+    } catch(e) {
+      console.warn('[태고맵] 평가 저장 실패:', e);
+    }
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -1713,7 +1890,7 @@ async function loadDongBoundaries() {
       version:   '2.0',
       request:   'GetFeature',
       key:       VWORLD_KEY,
-      domain:    'https://gitsong123.github.io',
+      domain:    location.origin,
       format:    'json',
       size:      '1000',
       page:      '1',
@@ -1934,19 +2111,29 @@ async function doSearch() {
   });
 }
 
-// ── 네이버 지역 검색 API 호출 (CORS 프록시 경유)
+// ── 네이버 지역 검색 API 호출
+// 1순위: Firebase Function 프록시 (/api/naversearch) — Blaze 플랜 배포 시 활성화
+// 2순위: corsproxy.io CORS 프록시 — 폴백
 async function searchNaverLocal(query) {
   const areaQuery = query.includes('태전') || query.includes('고산') ? query : `${query} 태전동`;
-  const apiUrl = `https://openapi.naver.com/v1/search/local.json?query=${encodeURIComponent(areaQuery)}&display=5&sort=comment`;
-  const proxyUrl = CORS_PROXY + encodeURIComponent(apiUrl);
+  const apiPath = `/v1/search/local.json?query=${encodeURIComponent(areaQuery)}&display=5&sort=comment`;
 
-  const resp = await fetch(proxyUrl, {
+  // 1순위: Firebase Function 프록시
+  try {
+    const fnResp = await fetch(`${NAVER_SEARCH_PROXY}?query=${encodeURIComponent(areaQuery)}`, { signal: AbortSignal.timeout(4000) });
+    if(fnResp.ok) return await fnResp.json();
+  } catch(e) { /* 미배포 또는 타임아웃 → corsproxy 폴백 */ }
+
+  // 2순위: corsproxy.io (커스텀 헤더 포워딩 지원)
+  const apiUrl = `https://openapi.naver.com${apiPath}`;
+  const resp = await fetch('https://corsproxy.io/?' + encodeURIComponent(apiUrl), {
     headers: {
       'X-Naver-Client-Id': NAVER_SEARCH_ID,
       'X-Naver-Client-Secret': NAVER_SEARCH_SECRET,
-    }
+    },
+    signal: AbortSignal.timeout(6000),
   });
-  if(!resp.ok) throw new Error('API 오류 ' + resp.status);
+  if(!resp.ok) throw new Error('Naver API 오류 ' + resp.status);
   return await resp.json();
 }
 
