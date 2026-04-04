@@ -1,0 +1,7 @@
+node_modules/
+functions/node_modules/
+.firebase/
+*.local
+food_places_raw.json
+food_places_geocoded.json
+serviceAccountKey.json

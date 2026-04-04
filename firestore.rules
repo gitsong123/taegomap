@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 음식점/장소 데이터 — 누구나 읽기 가능
+    match /places/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // 학원비 제보 — 누구나 읽기/쓰기 (클라이언트 제보용)
+    match /eduFees/{doc} {
+      allow read, write: if true;
+    }
+    // 공식 요금표 — 누구나 읽기
+    match /officialRates/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // 광고 클릭 로그 — 쓰기만 허용
+    match /ad_clicks/{doc} {
+      allow write: if true;
+      allow read: if false;
+    }
+  }
+}

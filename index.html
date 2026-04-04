@@ -787,6 +787,14 @@ function setMode(mode) {
   document.querySelector(`.mode-btn.${mode}`).classList.add('active');
   renderFilterBar();
   if(currentLatlng) renderPanel();
+  // 모드 전환 시 마커 갱신
+  if(mode === 'food') {
+    priceMarkerList.forEach(m => m.setMap(null)); priceMarkerList = [];
+    loadFoodMarkers();
+  } else {
+    foodMarkerList.forEach(m => m.setMap(null)); foodMarkerList = [];
+    loadPriceMarkers();
+  }
 }
 
 function renderFilterBar() {
@@ -1451,6 +1459,7 @@ async function submitEduFee() {
 // 지도 위 평균가격 마커 (Firebase 연동)
 // ══════════════════════════════════════════════
 let priceMarkerList = []; // 현재 표시 중인 마커
+let foodMarkerList = [];  // 음식점 마커
 
 function formatPriceShort(val) {
   if(val >= 10000) return (val / 10000).toFixed(1).replace(/\.0$/, '') + '만';
@@ -1585,6 +1594,90 @@ async function loadPriceMarkers() {
     console.log('[태고맵] 가격 마커 표시:', positioned.length, '개');
   } catch(e) {
     console.warn('[태고맵] 가격 마커 로딩 실패:', e);
+  }
+}
+
+// ══════════════════════════════════════════════
+// 음식점 마커 (places 컬렉션)
+// ══════════════════════════════════════════════
+const FOOD_ICON_MAP = {
+  cafe:  { bg: '#7C3AED', label: '카페' },
+  food:  { bg: '#EF4444', label: '식당' },
+};
+
+async function loadFoodMarkers() {
+  if(!db || !map) return;
+  foodMarkerList.forEach(m => m.setMap(null));
+  foodMarkerList = [];
+
+  try {
+    const snap = await db.collection('places')
+      .where('source', 'in', ['excel_seed', 'excel_seed_no_coord'])
+      .limit(500)
+      .get();
+
+    snap.docs.forEach(doc => {
+      const p = doc.data();
+      if(!p.lat || !p.lng) return;
+
+      const style = FOOD_ICON_MAP[p.category] || FOOD_ICON_MAP.food;
+      const name  = (p.name || '').replace(/<[^>]*>/g, '');
+      const short = name.length > 10 ? name.slice(0, 10) + '…' : name;
+
+      const marker = new naver.maps.Marker({
+        position: new naver.maps.LatLng(p.lat, p.lng),
+        map,
+        title: name,
+        zIndex: 10,
+        icon: {
+          content: `<div style="
+            background:${style.bg};
+            color:white;
+            padding:4px 9px;
+            border-radius:18px;
+            font-size:11px;
+            font-weight:700;
+            white-space:nowrap;
+            box-shadow:0 2px 6px rgba(0,0,0,0.25);
+            border:2px solid white;
+            cursor:pointer;
+          ">${short}</div>`,
+          anchor: new naver.maps.Point(0, 26),
+        },
+      });
+
+      // 클릭 시 정보 표시
+      naver.maps.Event.addListener(marker, 'click', () => {
+        currentAddr = { jibun: name, full: p.addr || name };
+        currentLatlng = new naver.maps.LatLng(p.lat, p.lng);
+        map.setCenter(currentLatlng);
+        // 하단 패널에 간단 정보 표시
+        const panel = document.getElementById('panel') || document.getElementById('bottomSheet');
+        if(panel) {
+          const catLabel = p.category === 'cafe' ? '☕ 카페' : '🍽️ 음식점';
+          panel.innerHTML = `
+            <div style="padding:16px">
+              <div style="font-size:16px;font-weight:800;margin-bottom:4px">${escH(name)}</div>
+              <div style="font-size:12px;color:#666;margin-bottom:8px">${catLabel} · ${escH(p.area||'')}</div>
+              <div style="font-size:12px;color:#444">${escH(p.addr||'')}</div>
+              ${p.phone ? `<div style="font-size:12px;color:#7C3AED;margin-top:6px">📞 ${escH(p.phone)}</div>` : ''}
+              <div style="margin-top:12px;display:flex;gap:8px">
+                <button onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(name)}','_blank')"
+                  style="flex:1;padding:8px;background:#03C75A;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">
+                  네이버 지도
+                </button>
+              </div>
+            </div>`;
+          openPanel();
+        }
+      });
+
+      foodMarkerList.push(marker);
+    });
+
+    console.log('[태고맵] 음식점 마커 표시:', foodMarkerList.length, '개');
+  } catch(e) {
+    console.warn('[태고맵] 음식점 마커 로딩 실패:', e);
   }
 }
 
