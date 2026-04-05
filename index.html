@@ -633,13 +633,12 @@ body, html { height: 100%; font-family: 'Noto Sans KR', -apple-system, sans-seri
   </div>
 </div>
 
-<!-- Naver Maps SDK: 제공해주신 Client ID(v3x4sdbnyg) 적용 -->
+<!-- Naver Maps SDK: 도메인별 키 자동 선택 -->
 <script>
 (function(){
-  // 사용자가 제공한 Client ID: v3x4sdbnyg (localhost, github.io, web.app 모두 등록됨)
-  var key = 'v3x4sdbnyg';
+  var key = location.hostname === 'taegomap.web.app' ? 'dp690i8adl' : 'v3x4sdbnyg';
   var s = document.createElement('script');
-  s.src = 'https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=' + key + '&submodules=geocoder&callback=initMap';
+  s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + key + '&submodules=geocoder&callback=initMap';
   document.head.appendChild(s);
 })();
 </script>
