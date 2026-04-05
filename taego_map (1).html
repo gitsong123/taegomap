@@ -1,0 +1,2143 @@
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
+<title>태고맵 | 태전·고산지구 학원비·맛집·카페 가성비 지도</title>
+<meta name="description" content="태전지구·고산지구 주민이 직접 만드는 학원비 투명 지도. 교습비 조정기준 자동 계산, 가성비 식당·카페 정보를 지도에서 확인하세요."/>
+<meta name="keywords" content="태전고산맵,태전 생활정보,고산 생활정보,태전지구,태전동,고산동,고산지구,태전동학원,태전동맛집"/>
+<meta name="geo.position" content="37.3892;127.2456"/>
+<meta name="geo.region" content="KR-41"/>
+<meta name="theme-color" content="#10B981"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="태고맵"/>
+<!-- VWorld 2D SDK (동기 로드 필수) -->
+<script src="https://map.vworld.kr/js/vworldMapInit.js.do?version=2.0&apiKey=A12CEDAE-86F1-3453-BC92-3FD98BE14103"></script>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Pretendard Font -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" crossorigin/>
+<style>
+/* ══════════════════════════════════════════
+   CSS 변수 & 리셋
+══════════════════════════════════════════ */
+:root {
+  --em:#10B981; --em-d:#047857; --em-l:#D1FAE5;
+  --bl:#3B82F6; --bl-d:#1D4ED8; --bl-l:#DBEAFE;
+  --or:#F97316; --or-l:#FFEDD5;
+  --pu:#8B5CF6; --pu-l:#EDE9FE;
+  --rd:#EF4444; --rd-l:#FEE2E2;
+  --am:#F59E0B; --am-l:#FEF3C7;
+  --g1:#111827; --g2:#374151; --g3:#6B7280; --g4:#9CA3AF; --g5:#E5E7EB; --g6:#F9FAFB;
+  --bg:#ffffff; --surface:#F9FAFB; --surface2:#F3F4F6;
+  --text:#111827; --text2:#6B7280; --border:#E5E7EB;
+  --r:12px; --r-sm:8px; --r-xs:6px;
+  --shadow:0 2px 12px rgba(0,0,0,.10);
+  --shadow-lg:0 8px 30px rgba(0,0,0,.15);
+  /* 카테고리 */
+  --c-academy:#3B82F6; --c-study:#8B5CF6; --c-food:#F97316; --c-cafe:#10B981; --c-reading:#8B5CF6;
+  /* 사이드바 너비 (데스크톱) */
+  --sidebar:360px;
+}
+html.dark {
+  --bg:#0D1117; --surface:#161B22; --surface2:#21262D;
+  --text:#E6EDF3; --text2:#8B949E; --border:#30363D;
+  --g6:#161B22;
+}
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif; overflow:hidden; background:var(--bg); color:var(--text); }
+button { font-family:inherit; cursor:pointer; border:none; background:none; }
+input, select, textarea { font-family:inherit; }
+
+/* ══════════════════════════════════════════
+   앱 레이아웃 — 모바일 기본
+══════════════════════════════════════════ */
+#app {
+  display:flex; flex-direction:column;
+  height:100%; height:100dvh;
+  position:relative; overflow:hidden;
+}
+
+/* ── 상단 헤더 ── */
+#header {
+  display:flex; align-items:center; gap:8px;
+  padding:10px 14px; flex-shrink:0; z-index:200;
+  background:var(--bg); border-bottom:0.5px solid var(--border);
+}
+.logo { font-size:18px; font-weight:800; color:var(--em); letter-spacing:-.5px; flex-shrink:0; }
+.search-wrap {
+  flex:1; display:flex; align-items:center; gap:8px;
+  background:var(--surface); border:0.5px solid var(--border);
+  border-radius:999px; padding:7px 14px;
+  transition:border-color .2s;
+}
+.search-wrap:focus-within { border-color:var(--em); }
+.search-wrap input {
+  flex:1; border:none; background:none; color:var(--text);
+  font-size:13px; outline:none;
+}
+.search-wrap input::placeholder { color:var(--text2); }
+.icon-btn {
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--surface); border:0.5px solid var(--border);
+  font-size:16px; flex-shrink:0; transition:background .15s;
+}
+.icon-btn:hover { background:var(--surface2); }
+
+/* 광고 AD-1 */
+.ad-strip {
+  flex-shrink:0; background:var(--bg);
+  border-bottom:0.5px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  padding:3px 0; min-height:34px;
+}
+.ad-ph {
+  width:320px; height:28px; background:var(--surface);
+  border:0.5px dashed var(--border); border-radius:4px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:9px; color:var(--text2); letter-spacing:.3px;
+}
+
+/* ── 카테고리 탭 ── */
+#cat-bar {
+  display:flex; gap:5px; padding:7px 12px; overflow-x:auto;
+  background:var(--bg); border-bottom:0.5px solid var(--border);
+  flex-shrink:0; scrollbar-width:none;
+}
+#cat-bar::-webkit-scrollbar { display:none; }
+.cat-btn {
+  display:flex; align-items:center; gap:4px;
+  padding:5px 13px; border-radius:999px; white-space:nowrap;
+  font-size:12px; font-weight:600; flex-shrink:0;
+  border:0.5px solid var(--border); background:var(--bg); color:var(--text2);
+  transition:all .15s;
+}
+.cat-btn.on { color:#fff; border-color:transparent; }
+.cat-btn[data-c="all"].on    { background:var(--g2); }
+.cat-btn[data-c="academy"].on{ background:var(--c-academy); }
+.cat-btn[data-c="study"].on  { background:var(--c-study); }
+.cat-btn[data-c="food"].on   { background:var(--c-food); }
+.cat-btn[data-c="cafe"].on   { background:var(--c-cafe); }
+.cat-btn[data-c="reading_room"].on { background:var(--pu); }
+
+/* ── 가격 필터 ── */
+#price-bar {
+  display:none; gap:5px; padding:5px 12px; overflow-x:auto;
+  background:var(--surface); border-bottom:0.5px solid var(--border);
+  flex-shrink:0; scrollbar-width:none;
+}
+#price-bar.show { display:flex; }
+#price-bar::-webkit-scrollbar { display:none; }
+.pf-btn {
+  padding:3px 11px; border-radius:999px; font-size:11px; font-weight:600;
+  border:0.5px solid var(--border); background:var(--bg); color:var(--text2);
+  white-space:nowrap; flex-shrink:0; transition:all .15s;
+}
+.pf-btn.on { background:var(--bl); color:#fff; border-color:var(--bl); }
+
+/* ── 본문 영역 ── */
+#body {
+  flex:1; display:flex; overflow:hidden; position:relative;
+}
+
+/* ══════════════════════════════════════════
+   지도 패널
+══════════════════════════════════════════ */
+#map-panel {
+  position:relative; flex:1; overflow:hidden;
+  display:flex; flex-direction:column;
+}
+#ol3map { flex:1; width:100%; }
+
+/* TOP3 슬라이드 바 (지도 위 하단) */
+#top3-bar {
+  position:absolute; bottom:0; left:0; right:0; z-index:50;
+  display:flex; gap:8px; padding:8px 12px; overflow-x:auto;
+  background:linear-gradient(to top, rgba(0,0,0,.2), transparent);
+  scrollbar-width:none; pointer-events:none;
+}
+#top3-bar > * { pointer-events:all; }
+#top3-bar::-webkit-scrollbar { display:none; }
+.t3card {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 12px; background:var(--bg); border-radius:10px;
+  border:0.5px solid var(--border); flex-shrink:0; cursor:pointer;
+  min-width:155px; max-width:200px; box-shadow:var(--shadow);
+  transition:transform .15s;
+}
+.t3card:hover { transform:translateY(-2px); }
+.t3rank {
+  width:24px; height:24px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:#fff; flex-shrink:0;
+}
+.t3info { flex:1; min-width:0; }
+.t3name { font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.t3meta { font-size:10px; color:var(--text2); margin-top:1px; }
+
+/* 지도 FAB 버튼 */
+#fab-loc {
+  position:absolute; right:12px; bottom:100px; z-index:60;
+  width:44px; height:44px; border-radius:50%;
+  background:var(--bg); border:0.5px solid var(--border);
+  box-shadow:var(--shadow); font-size:20px;
+  display:flex; align-items:center; justify-content:center;
+}
+#fab-add {
+  position:absolute; right:12px; bottom:152px; z-index:60;
+  width:44px; height:44px; border-radius:50%;
+  background:var(--em); color:#fff; box-shadow:0 3px 12px rgba(16,185,129,.4);
+  font-size:22px; display:flex; align-items:center; justify-content:center;
+}
+#fab-loc:hover, #fab-add:hover { transform:scale(1.08); }
+
+/* ══════════════════════════════════════════
+   하단 시트 (Bottom Sheet)
+══════════════════════════════════════════ */
+#sheet-overlay {
+  position:absolute; inset:0; z-index:300;
+  background:rgba(0,0,0,0); pointer-events:none;
+  transition:background .3s;
+}
+#sheet-overlay.show { background:rgba(0,0,0,.35); pointer-events:all; }
+#sheet {
+  position:absolute; bottom:0; left:0; right:0; z-index:301;
+  background:var(--bg); border-radius:20px 20px 0 0;
+  max-height:88vh; display:flex; flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 -4px 24px rgba(0,0,0,.15);
+}
+#sheet.open { transform:translateY(0); }
+.s-handle {
+  width:36px; height:4px; background:var(--border); border-radius:2px;
+  margin:10px auto 6px; flex-shrink:0;
+}
+.s-scroll {
+  overflow-y:auto; flex:1; padding:8px 16px 24px;
+  scrollbar-width:none;
+}
+.s-scroll::-webkit-scrollbar { display:none; }
+
+/* ══════════════════════════════════════════
+   우측 패널 (데스크톱 전용)
+══════════════════════════════════════════ */
+#side-panel {
+  display:none; /* 기본 숨김 — 데스크톱에서만 표시 */
+  flex-direction:column; width:var(--sidebar);
+  flex-shrink:0; background:var(--bg);
+  border-left:0.5px solid var(--border);
+  overflow:hidden; z-index:100;
+}
+.side-tabs {
+  display:flex; border-bottom:0.5px solid var(--border);
+  flex-shrink:0;
+}
+.side-tab {
+  flex:1; padding:11px 8px; text-align:center; font-size:12px; font-weight:600;
+  color:var(--text2); border-bottom:2px solid transparent; transition:all .15s;
+}
+.side-tab.on { color:var(--em); border-bottom-color:var(--em); }
+.side-content { flex:1; overflow-y:auto; scrollbar-width:thin; }
+.side-content::-webkit-scrollbar { width:4px; }
+.side-content::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+/* ══════════════════════════════════════════
+   하단 탭바 (모바일 전용)
+══════════════════════════════════════════ */
+#tabbar {
+  display:flex; background:var(--bg);
+  border-top:0.5px solid var(--border); flex-shrink:0; z-index:200;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.tb-btn {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; gap:2px; padding:8px 0;
+  font-size:9px; font-weight:600; color:var(--text2); transition:color .15s;
+}
+.tb-btn.on { color:var(--em); }
+.tb-icon { font-size:18px; line-height:1; }
+
+/* 광고 AD-3 앵커 */
+.ad-anchor {
+  flex-shrink:0; background:var(--bg); border-top:0.5px solid var(--border);
+  display:flex; align-items:center; justify-content:center; padding:3px 0; min-height:30px;
+}
+
+/* ══════════════════════════════════════════
+   공통 컴포넌트
+══════════════════════════════════════════ */
+
+/* 카드 */
+.card {
+  background:var(--bg); border:0.5px solid var(--border);
+  border-radius:var(--r); padding:12px 14px; margin-bottom:8px;
+}
+.card-tit {
+  font-size:12px; font-weight:700; color:var(--text2);
+  margin-bottom:8px; display:flex; align-items:center; gap:5px;
+}
+
+/* 법령 태그 */
+.law-tag {
+  display:inline-block; font-size:9px; font-weight:700;
+  padding:1px 5px; border-radius:4px; background:var(--pu-l); color:var(--pu);
+  vertical-align:middle; margin-left:2px;
+}
+
+/* 요금 행 */
+.fee-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:5px 0; border-bottom:0.5px solid var(--border);
+}
+.fee-row:last-child { border-bottom:none; }
+.fee-lbl { font-size:12px; color:var(--text2); }
+.fee-val { font-size:13px; font-weight:700; }
+.fee-val.blue  { color:var(--bl-d); }
+.fee-val.green { color:var(--em-d); }
+.fee-val.red   { color:var(--rd); }
+.fee-val.amber { color:var(--am); }
+
+/* 비교 막대 */
+.bar-wrap { margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+.bar-row { display:flex; flex-direction:column; gap:2px; }
+.bar-label-row { display:flex; justify-content:space-between; font-size:10px; color:var(--text2); }
+.bar-track { height:10px; background:var(--surface2); border-radius:5px; overflow:hidden; }
+.bar-fill  { height:100%; border-radius:5px; transition:width .5s ease; }
+
+/* 초과 배지 */
+.excess-badge {
+  display:inline-flex; align-items:center; gap:3px;
+  padding:2px 8px; border-radius:999px; font-size:10px; font-weight:700; margin-top:5px;
+}
+.excess-badge.over { background:var(--rd-l); color:var(--rd); }
+.excess-badge.safe { background:var(--em-l); color:var(--em-d); }
+
+/* 경고 박스 */
+.warn-box {
+  background:var(--rd-l); border:0.5px solid var(--rd);
+  border-radius:var(--r-xs); padding:10px 12px; margin-top:8px;
+  font-size:11px; line-height:1.7; color:var(--rd);
+}
+.warn-box a { color:var(--rd); font-weight:700; text-decoration:underline; }
+.info-box {
+  background:var(--em-l); border-left:3px solid var(--em);
+  border-radius:0 var(--r-xs) var(--r-xs) 0; padding:8px 10px;
+  font-size:11px; line-height:1.6; color:var(--em-d); margin-top:6px;
+}
+
+/* 투표 */
+.vote-btns { display:flex; gap:8px; margin-top:8px; }
+.vote-btn {
+  flex:1; padding:9px; border-radius:var(--r-xs);
+  border:0.5px solid var(--border); background:var(--surface);
+  font-size:12px; font-weight:700; color:var(--text); transition:all .15s;
+}
+.vote-btn.up  { border-color:var(--bl); color:var(--bl-d); background:var(--bl-l); }
+.vote-btn.dn  { border-color:var(--or); color:var(--or); background:var(--or-l); }
+.vote-btn:active { transform:scale(.97); }
+.cp-display { text-align:center; margin-top:6px; font-size:11px; color:var(--text2); }
+
+/* 3개 투표 (먹거리) */
+.v3-row { display:flex; align-items:center; gap:7px; margin-bottom:5px; }
+.v3-label { font-size:11px; font-weight:700; color:var(--text2); width:30px; flex-shrink:0; }
+.v3-btns  { display:flex; gap:4px; flex:1; }
+.v3-btn {
+  flex:1; padding:5px; border-radius:6px; font-size:11px; font-weight:700;
+  border:0.5px solid var(--border); background:var(--bg); color:var(--text); transition:all .15s;
+}
+.v3-btn.up { border-color:var(--bl); color:var(--bl-d); background:var(--bl-l); }
+.v3-btn.dn { border-color:var(--or); color:var(--or); background:var(--or-l); }
+
+/* 아이 태그 */
+.kid-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+.kid-tag {
+  padding:4px 10px; border-radius:999px; font-size:11px; font-weight:600;
+  border:0.5px solid var(--border); background:var(--bg); cursor:pointer;
+  transition:all .15s; display:flex; align-items:center; gap:3px;
+}
+.kid-tag:hover { background:var(--em-l); border-color:var(--em); color:var(--em-d); }
+
+/* 댓글 */
+.cmt-list { display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
+.cmt-item {
+  background:var(--surface); border-radius:var(--r-xs); padding:8px 10px;
+}
+.cmt-nick { font-size:11px; font-weight:700; color:var(--em-d); }
+.cmt-time { font-size:10px; color:var(--text2); margin-left:5px; }
+.cmt-text { font-size:12px; margin-top:3px; line-height:1.5; }
+.cmt-input-row { display:flex; gap:6px; }
+.cmt-input {
+  flex:1; padding:7px 12px; border-radius:999px;
+  border:0.5px solid var(--border); background:var(--surface);
+  color:var(--text); font-size:12px; outline:none; transition:border-color .15s;
+}
+.cmt-input:focus { border-color:var(--em); }
+.cmt-submit {
+  padding:7px 14px; border-radius:999px; background:var(--em);
+  color:#fff; font-size:12px; font-weight:700;
+}
+
+/* 저장/신고 버튼 행 */
+.action-row { display:flex; gap:7px; margin-bottom:12px; }
+.action-btn {
+  flex:1; padding:9px; border-radius:var(--r-sm);
+  border:0.5px solid var(--border); font-size:12px; font-weight:700;
+  background:var(--surface); color:var(--text2); transition:all .15s;
+}
+.action-btn.saved { background:var(--rd-l); color:var(--rd); border-color:var(--rd); }
+
+/* 신고 버튼들 */
+.report-row { display:flex; gap:5px; margin-top:8px; }
+.report-btn {
+  flex:1; padding:5px; border-radius:var(--r-xs); font-size:10px; font-weight:600;
+  border:0.5px solid var(--border); background:var(--surface); color:var(--text2);
+  transition:all .15s;
+}
+.report-btn:hover { background:var(--rd-l); color:var(--rd); border-color:var(--rd); }
+
+/* 교습비 계산기 */
+.fee-calc {
+  background:var(--em-l); border:0.5px solid var(--em);
+  border-radius:var(--r-sm); padding:11px 13px; margin-bottom:8px;
+}
+.fee-calc-tit {
+  font-size:11px; font-weight:700; color:var(--em-d); margin-bottom:8px;
+  display:flex; align-items:center; gap:4px;
+}
+.fc-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px; }
+.fc-item label { font-size:10px; color:var(--em-d); display:block; margin-bottom:3px; }
+.fc-item select {
+  width:100%; padding:4px 7px; border-radius:5px;
+  border:0.5px solid var(--em); background:#fff; color:var(--g1);
+  font-size:11px; outline:none; font-family:inherit;
+}
+.fc-result {
+  background:#fff; border-radius:6px; padding:9px 11px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.fc-result-lbl { font-size:11px; color:var(--em-d); font-weight:600; }
+.fc-result-val { font-size:16px; font-weight:700; color:var(--bl-d); }
+
+/* 광고 슬롯 (시트 내) */
+.ad-slot {
+  display:flex; align-items:center; gap:9px; padding:10px 12px;
+  background:var(--em-l); border:0.5px solid var(--em); border-radius:var(--r-sm);
+  margin-bottom:8px; cursor:pointer;
+}
+.ad-slot-ico { font-size:22px; flex-shrink:0; }
+.ad-slot-body { flex:1; }
+.ad-slot-tit { font-size:12px; font-weight:700; color:var(--em-d); }
+.ad-slot-sub { font-size:10px; color:var(--em-d); opacity:.8; }
+.ad-slot-badge {
+  font-size:9px; font-weight:700; color:var(--em-d);
+  background:#fff; padding:2px 6px; border-radius:999px; flex-shrink:0;
+}
+
+/* ══════════════════════════════════════════
+   탭 콘텐츠 (모바일 패널 / 사이드패널 공유)
+══════════════════════════════════════════ */
+.tab-panel { display:none; flex-direction:column; flex:1; overflow:hidden; }
+.tab-panel.active { display:flex; }
+.panel-header {
+  padding:13px 14px 10px; background:var(--bg);
+  border-bottom:0.5px solid var(--border); flex-shrink:0;
+}
+.panel-header h2 { font-size:16px; font-weight:700; margin-bottom:7px; }
+.chip-row { display:flex; gap:5px; overflow-x:auto; scrollbar-width:none; padding-bottom:1px; }
+.chip-row::-webkit-scrollbar { display:none; }
+.chip {
+  padding:4px 12px; border-radius:999px; font-size:11px; font-weight:600;
+  border:0.5px solid var(--border); background:var(--bg); color:var(--text2);
+  white-space:nowrap; flex-shrink:0; transition:all .15s;
+}
+.chip.on { background:var(--em); color:#fff; border-color:var(--em); }
+.list-wrap {
+  flex:1; overflow-y:auto; padding:8px 12px;
+  display:flex; flex-direction:column; gap:7px;
+  scrollbar-width:thin;
+}
+.list-wrap::-webkit-scrollbar { width:3px; }
+.list-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+/* 핫딜 카드 */
+.hd-card {
+  background:var(--bg); border:0.5px solid var(--border);
+  border-radius:var(--r); padding:11px 13px;
+}
+.hd-top { display:flex; align-items:center; gap:5px; margin-bottom:6px; }
+.hd-badge {
+  font-size:10px; font-weight:700; padding:2px 7px;
+  border-radius:999px;
+}
+.hd-badge.academy { background:var(--bl-l); color:var(--bl-d); }
+.hd-badge.food    { background:var(--or-l); color:var(--or); }
+.hd-badge.cafe    { background:var(--em-l); color:var(--em-d); }
+.hd-badge.market  { background:var(--am-l); color:var(--am); }
+.exp-badge {
+  margin-left:auto; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px;
+}
+.exp-badge.today     { background:var(--rd-l); color:var(--rd); }
+.exp-badge.thisweek  { background:var(--am-l); color:var(--am); }
+.exp-badge.thismonth { background:var(--em-l); color:var(--em-d); }
+.hd-tit  { font-size:13px; font-weight:700; margin-bottom:2px; }
+.hd-desc { font-size:11px; color:var(--text2); margin-bottom:7px; }
+.hd-foot { display:flex; align-items:center; justify-content:space-between; font-size:11px; color:var(--text2); }
+.like-btn {
+  display:flex; align-items:center; gap:3px; padding:3px 9px;
+  border-radius:999px; border:0.5px solid var(--border);
+  font-size:11px; font-weight:600; color:var(--text2); transition:all .15s;
+}
+.like-btn.liked { background:var(--rd-l); color:var(--rd); border-color:var(--rd); }
+
+/* 랭킹 카드 */
+.rk-card {
+  display:flex; align-items:center; gap:9px;
+  padding:10px 12px; background:var(--bg);
+  border:0.5px solid var(--border); border-radius:var(--r);
+  cursor:pointer; transition:background .15s;
+}
+.rk-card:hover { background:var(--surface); }
+.rk-num {
+  width:28px; height:28px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:700;
+}
+.rk-gold   { background:#F59E0B; color:#fff; }
+.rk-silver { background:#9CA3AF; color:#fff; }
+.rk-bronze { background:#D97706; color:#fff; }
+.rk-normal { background:var(--surface2); color:var(--text2); }
+.rk-info   { flex:1; min-width:0; }
+.rk-name   { font-size:13px; font-weight:700; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rk-meta   { font-size:11px; color:var(--text2); }
+
+/* 커뮤니티 카드 */
+.post-card {
+  background:var(--bg); border:0.5px solid var(--border);
+  border-radius:var(--r); padding:11px 13px; cursor:pointer; transition:background .15s;
+}
+.post-card:hover { background:var(--surface); }
+.post-board {
+  display:inline-block; font-size:10px; font-weight:700;
+  padding:1px 8px; border-radius:999px; margin-bottom:5px;
+}
+.post-board.academy   { background:var(--bl-l); color:var(--bl-d); }
+.post-board.food      { background:var(--or-l); color:var(--or); }
+.post-board.community { background:var(--em-l); color:var(--em-d); }
+.post-board.market    { background:var(--pu-l); color:var(--pu); }
+.post-tit  { font-size:13px; font-weight:700; margin-bottom:3px; }
+.post-prev { font-size:11px; color:var(--text2); margin-bottom:6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.5; }
+.post-foot { display:flex; gap:8px; font-size:10px; color:var(--text2); }
+
+/* 내정보 */
+#my-panel { padding:14px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
+.my-hero {
+  background:var(--em); border-radius:var(--r); padding:16px;
+  color:#fff;
+}
+.my-nick { font-size:18px; font-weight:700; margin-bottom:3px; }
+.my-uid  { font-size:11px; opacity:.75; margin-bottom:12px; }
+.my-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; }
+.my-stat { background:rgba(255,255,255,.16); border-radius:8px; padding:8px; text-align:center; }
+.my-sn   { font-size:20px; font-weight:700; }
+.my-sl   { font-size:9px; opacity:.8; margin-top:1px; }
+.setting-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 14px; background:var(--bg);
+  border:0.5px solid var(--border); border-radius:var(--r-sm);
+}
+.setting-lbl { font-size:13px; font-weight:600; }
+.tgl {
+  width:44px; height:24px; border-radius:12px;
+  background:var(--g5); position:relative; cursor:pointer; transition:background .2s;
+}
+.tgl.on { background:var(--em); }
+.tgl::after {
+  content:''; position:absolute; top:2px; left:2px; width:20px; height:20px;
+  background:#fff; border-radius:50%; transition:transform .2s;
+}
+.tgl.on::after { transform:translateX(20px); }
+
+/* ══════════════════════════════════════════
+   모달
+══════════════════════════════════════════ */
+#modal-wrap {
+  position:fixed; inset:0; z-index:500;
+  background:rgba(0,0,0,.55); display:none;
+  align-items:flex-end; justify-content:center;
+}
+#modal-wrap.show { display:flex; }
+#modal-box {
+  background:var(--bg); border-radius:20px 20px 0 0;
+  width:100%; max-width:640px; max-height:92vh;
+  display:flex; flex-direction:column;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.modal-hdr {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:15px 16px 12px; border-bottom:0.5px solid var(--border); flex-shrink:0;
+}
+.modal-tit { font-size:16px; font-weight:700; }
+.modal-cls { font-size:22px; color:var(--text2); padding:4px 2px; }
+.modal-body { overflow-y:auto; padding:14px 16px; flex:1; display:flex; flex-direction:column; gap:9px; }
+.modal-body::-webkit-scrollbar { width:3px; }
+.modal-body::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+.modal-foot { padding:12px 16px; border-top:0.5px solid var(--border); flex-shrink:0; }
+
+/* 폼 */
+.fg { display:flex; flex-direction:column; gap:4px; }
+.fl { font-size:12px; font-weight:600; color:var(--text2); }
+.fi {
+  padding:9px 12px; border-radius:var(--r-xs);
+  border:0.5px solid var(--border); background:var(--surface);
+  color:var(--text); font-size:13px; outline:none; font-family:inherit;
+  transition:border-color .15s;
+}
+.fi:focus { border-color:var(--em); }
+.fs {
+  padding:9px 12px; border-radius:var(--r-xs);
+  border:0.5px solid var(--border); background:var(--surface);
+  color:var(--text); font-size:13px; outline:none; font-family:inherit;
+  appearance:none;
+}
+
+/* 카테고리 선택 그리드 */
+.cat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.cpick {
+  padding:9px; border-radius:var(--r-sm); font-size:12px; font-weight:700;
+  border:0.5px solid var(--border); background:var(--surface);
+  text-align:center; transition:all .15s;
+}
+.cpick.sel { color:#fff; border-color:transparent; }
+.cpick[data-v="academy"].sel  { background:var(--c-academy); }
+.cpick[data-v="study"].sel    { background:var(--c-study); }
+.cpick[data-v="food"].sel     { background:var(--c-food); }
+.cpick[data-v="cafe"].sel     { background:var(--c-cafe); }
+.cpick[data-v="reading_room"].sel { background:var(--pu); }
+
+/* 스텝 인디케이터 */
+.steps { display:flex; gap:4px; align-items:center; margin-bottom:4px; }
+.step-dot { width:6px; height:6px; border-radius:50%; background:var(--border); }
+.step-dot.on { background:var(--em); width:20px; border-radius:3px; }
+.step-lbl { font-size:11px; color:var(--text2); margin-left:6px; }
+
+/* 기본 버튼 */
+.btn-primary {
+  width:100%; padding:13px; border-radius:var(--r-sm);
+  background:var(--em); color:#fff; font-size:15px; font-weight:700;
+  transition:opacity .15s;
+}
+.btn-primary:hover { opacity:.88; }
+
+/* ══════════════════════════════════════════
+   플로팅 행동 버튼 (모바일 탭 내)
+══════════════════════════════════════════ */
+.fab-in-tab {
+  position:absolute; right:14px; bottom:14px; z-index:10;
+  padding:10px 18px; border-radius:999px; background:var(--em); color:#fff;
+  font-size:13px; font-weight:700; box-shadow:0 3px 12px rgba(16,185,129,.4);
+}
+
+/* ══════════════════════════════════════════
+   토스트
+══════════════════════════════════════════ */
+#toast {
+  position:fixed; bottom:80px; left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:rgba(17,24,39,.9); color:#fff; padding:9px 18px;
+  border-radius:999px; font-size:13px; font-weight:600;
+  z-index:2000; opacity:0; transition:all .25s;
+  white-space:nowrap; pointer-events:none;
+}
+#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ══════════════════════════════════════════
+   로더
+══════════════════════════════════════════ */
+#loader {
+  position:fixed; inset:0; background:var(--bg); z-index:9999;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+}
+.ldr-logo { font-size:34px; font-weight:800; color:var(--em); letter-spacing:-.5px; }
+.ldr-sub  { font-size:13px; color:var(--text2); }
+.spinner  {
+  width:32px; height:32px;
+  border:3px solid var(--border); border-top-color:var(--em);
+  border-radius:50%; animation:spin .8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ══════════════════════════════════════════
+   빈 상태
+══════════════════════════════════════════ */
+.empty {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:40px 20px; color:var(--text2); gap:8px; text-align:center;
+}
+.empty-icon { font-size:36px; }
+.empty-txt  { font-size:14px; font-weight:600; }
+.empty-sub  { font-size:12px; }
+
+/* ══════════════════════════════════════════
+   반응형 — 데스크톱 (≥ 800px)
+══════════════════════════════════════════ */
+@media (min-width: 800px) {
+  #app { max-width:none; }
+
+  /* 데스크톱: 사이드바 표시, 탭바 숨김 */
+  #side-panel { display:flex; }
+  #tabbar     { display:none; }
+  .ad-anchor  { display:none; }
+
+  /* 지도 TOP3 바 위치 조정 */
+  #top3-bar { bottom:0; }
+
+  /* 하단 시트 → 사이드패널 내부로 이동 (지도위 시트 숨김) */
+  #sheet, #sheet-overlay { display:none !important; }
+
+  /* 사이드패널 내 시트 콘텐츠 표시 */
+  #desktop-sheet {
+    padding:12px 14px; display:block; overflow-y:auto;
+    scrollbar-width:thin;
+  }
+  #desktop-sheet::-webkit-scrollbar { width:3px; }
+  #desktop-sheet::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+  /* FAB 위치 */
+  #fab-loc { bottom:100px; }
+  #fab-add { bottom:152px; }
+
+  /* 모달 데스크톱 */
+  #modal-wrap { align-items:center; }
+  #modal-box  { border-radius:var(--r); max-height:80vh; margin:0 20px; }
+}
+
+/* ══════════════════════════════════════════
+   모바일 탭 패널 (지도 탭 외 패널)
+══════════════════════════════════════════ */
+#mob-content {
+  display:none; /* 지도 탭에서는 숨김 */
+  flex:1; overflow:hidden; flex-direction:column; position:relative;
+}
+#mob-content.show { display:flex; }
+
+/* ══════════════════════════════════════════
+   VWorld 오버레이 버그 패치
+══════════════════════════════════════════ */
+.ol-viewport { position:relative !important; }
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="ldr-logo">📍 태고맵</div>
+  <div class="spinner"></div>
+  <div class="ldr-sub">태전·고산지구 생활정보 불러오는 중...</div>
+</div>
+
+<div id="app" style="display:none;">
+
+  <!-- 헤더 -->
+  <div id="header">
+    <div class="logo">📍태고맵</div>
+    <div class="search-wrap">
+      <span style="font-size:14px;color:var(--text2)">🔍</span>
+      <input id="search-inp" type="text" placeholder="태전·고산 학원, 맛집, 카페 검색..."/>
+    </div>
+    <button class="icon-btn" id="dark-btn" onclick="toggleDark()">☀️</button>
+  </div>
+
+  <!-- 광고 AD-1 -->
+  <div class="ad-strip"><div class="ad-ph">광고 · 카카오 애드핏 320×50</div></div>
+
+  <!-- 카테고리 탭 -->
+  <div id="cat-bar">
+    <button class="cat-btn on" data-c="all" onclick="setCategory(this)">🗺 전체</button>
+    <button class="cat-btn" data-c="academy" onclick="setCategory(this)">🎓 학원</button>
+    <button class="cat-btn" data-c="study" onclick="setCategory(this)">✏️ 공부방</button>
+    <button class="cat-btn" data-c="food" onclick="setCategory(this)">🍚 식당</button>
+    <button class="cat-btn" data-c="cafe" onclick="setCategory(this)">☕ 카페</button>
+    <button class="cat-btn" data-c="reading_room" onclick="setCategory(this)">📖 독서실</button>
+  </div>
+
+  <!-- 가격 필터 -->
+  <div id="price-bar"></div>
+
+  <!-- 본문 -->
+  <div id="body">
+
+    <!-- 지도 패널 -->
+    <div id="map-panel">
+      <div id="ol3map"></div>
+      <div id="top3-bar"></div>
+      <button id="fab-loc" onclick="goMyLoc()">📍</button>
+      <button id="fab-add" onclick="openAddModal()">➕</button>
+
+      <!-- 하단 시트 (모바일) -->
+      <div id="sheet-overlay" onclick="closeSheet()"></div>
+      <div id="sheet">
+        <div class="s-handle"></div>
+        <div class="s-scroll" id="sheet-body"></div>
+      </div>
+    </div>
+
+    <!-- 사이드패널 (데스크톱) -->
+    <div id="side-panel">
+      <div class="side-tabs">
+        <button class="side-tab on" data-st="map" onclick="setSideTab(this)">🗺 지도정보</button>
+        <button class="side-tab" data-st="hotdeal" onclick="setSideTab(this)">🔥 핫딜</button>
+        <button class="side-tab" data-st="ranking" onclick="setSideTab(this)">🏆 랭킹</button>
+        <button class="side-tab" data-st="community" onclick="setSideTab(this)">💬 커뮤니티</button>
+      </div>
+      <div class="side-content">
+        <!-- 지도정보 탭: 장소 시트 표시 -->
+        <div id="st-map" class="tab-panel active" style="padding:0;">
+          <div id="desktop-sheet">
+            <div class="empty">
+              <div class="empty-icon">📍</div>
+              <div class="empty-txt">지도에서 장소를 선택하세요</div>
+              <div class="empty-sub">마커를 클릭하면 상세 정보가 표시됩니다</div>
+            </div>
+          </div>
+        </div>
+        <!-- 핫딜 탭 -->
+        <div id="st-hotdeal" class="tab-panel" style="flex-direction:column;">
+          <div class="panel-header">
+            <h2>🔥 태전·고산 핫딜</h2>
+            <div class="chip-row" id="hf-chips">
+              <button class="chip on" data-hf="all" onclick="setHdFilter(this)">전체</button>
+              <button class="chip" data-hf="academy" onclick="setHdFilter(this)">🎓 학원</button>
+              <button class="chip" data-hf="food" onclick="setHdFilter(this)">🍚 식당</button>
+              <button class="chip" data-hf="cafe" onclick="setHdFilter(this)">☕ 카페</button>
+              <button class="chip" data-hf="market" onclick="setHdFilter(this)">🛒 마트</button>
+            </div>
+          </div>
+          <div class="list-wrap" id="hd-list-desk"></div>
+        </div>
+        <!-- 랭킹 탭 -->
+        <div id="st-ranking" class="tab-panel" style="flex-direction:column;">
+          <div class="panel-header">
+            <h2>🏆 가성비 랭킹</h2>
+            <div class="chip-row" id="rf-chips">
+              <button class="chip on" data-rf="all" onclick="setRkFilter(this)">전체</button>
+              <button class="chip" data-rf="academy" onclick="setRkFilter(this)">🎓 학원</button>
+              <button class="chip" data-rf="food" onclick="setRkFilter(this)">🍚 식당</button>
+              <button class="chip" data-rf="cafe" onclick="setRkFilter(this)">☕ 카페</button>
+            </div>
+          </div>
+          <div class="list-wrap" id="rk-list-desk"></div>
+        </div>
+        <!-- 커뮤니티 탭 -->
+        <div id="st-community" class="tab-panel" style="flex-direction:column;">
+          <div class="panel-header">
+            <h2>💬 태전·고산 커뮤니티</h2>
+            <div class="chip-row" id="bf-chips">
+              <button class="chip on" data-bf="all" onclick="setBdFilter(this)">전체</button>
+              <button class="chip" data-bf="academy" onclick="setBdFilter(this)">🎓 학원정보</button>
+              <button class="chip" data-bf="food" onclick="setBdFilter(this)">🍽 맛집</button>
+              <button class="chip" data-bf="community" onclick="setBdFilter(this)">💬 동네소식</button>
+              <button class="chip" data-bf="market" onclick="setBdFilter(this)">🛒 중고장터</button>
+            </div>
+          </div>
+          <div class="list-wrap" id="bd-list-desk"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <!-- 모바일 탭 콘텐츠 -->
+  <div id="mob-content">
+    <!-- 핫딜 -->
+    <div id="mob-hotdeal" class="tab-panel" style="flex-direction:column;position:relative;">
+      <div class="panel-header">
+        <h2>🔥 태전·고산 핫딜</h2>
+        <div class="chip-row" id="hf-mob">
+          <button class="chip on" data-hf="all" onclick="setHdFilter(this)">전체</button>
+          <button class="chip" data-hf="academy" onclick="setHdFilter(this)">🎓 학원</button>
+          <button class="chip" data-hf="food" onclick="setHdFilter(this)">🍚 식당</button>
+          <button class="chip" data-hf="cafe" onclick="setHdFilter(this)">☕ 카페</button>
+          <button class="chip" data-hf="market" onclick="setHdFilter(this)">🛒 마트</button>
+        </div>
+      </div>
+      <div class="list-wrap" id="hd-list-mob"></div>
+      <button class="fab-in-tab" onclick="openHdModal()">📢 핫딜 제보</button>
+    </div>
+    <!-- 랭킹 -->
+    <div id="mob-ranking" class="tab-panel" style="flex-direction:column;">
+      <div class="panel-header">
+        <h2>🏆 가성비 랭킹</h2>
+        <div class="chip-row" id="rf-mob">
+          <button class="chip on" data-rf="all" onclick="setRkFilter(this)">전체</button>
+          <button class="chip" data-rf="academy" onclick="setRkFilter(this)">🎓 학원</button>
+          <button class="chip" data-rf="food" onclick="setRkFilter(this)">🍚 식당</button>
+          <button class="chip" data-rf="cafe" onclick="setRkFilter(this)">☕ 카페</button>
+        </div>
+      </div>
+      <div class="list-wrap" id="rk-list-mob"></div>
+    </div>
+    <!-- 커뮤니티 -->
+    <div id="mob-community" class="tab-panel" style="flex-direction:column;position:relative;">
+      <div class="panel-header">
+        <h2>💬 태전·고산 커뮤니티</h2>
+        <div class="chip-row" id="bf-mob">
+          <button class="chip on" data-bf="all" onclick="setBdFilter(this)">전체</button>
+          <button class="chip" data-bf="academy" onclick="setBdFilter(this)">🎓 학원정보</button>
+          <button class="chip" data-bf="food" onclick="setBdFilter(this)">🍽 맛집</button>
+          <button class="chip" data-bf="community" onclick="setBdFilter(this)">💬 동네소식</button>
+          <button class="chip" data-bf="market" onclick="setBdFilter(this)">🛒 중고장터</button>
+        </div>
+      </div>
+      <div class="list-wrap" id="bd-list-mob"></div>
+      <button class="fab-in-tab" onclick="openPostModal()">✏️ 글쓰기</button>
+    </div>
+    <!-- 내정보 -->
+    <div id="mob-my" class="tab-panel">
+      <div id="my-panel">
+        <div class="my-hero">
+          <div class="my-nick" id="my-nick">태전주민#로딩</div>
+          <div class="my-uid" id="my-uid">익명 사용자</div>
+          <div class="my-stats">
+            <div class="my-stat"><div class="my-sn" id="s-saves">0</div><div class="my-sl">저장</div></div>
+            <div class="my-stat"><div class="my-sn" id="s-votes">0</div><div class="my-sl">투표</div></div>
+            <div class="my-stat"><div class="my-sn" id="s-rpts">0</div><div class="my-sl">제보</div></div>
+            <div class="my-stat"><div class="my-sn" id="s-posts">0</div><div class="my-sl">게시글</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-tit">❤️ 저장한 장소</div>
+          <div id="my-saves-list" style="font-size:13px;color:var(--text2);">저장한 장소가 없습니다.</div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-lbl">🌙 다크모드</span>
+          <div class="tgl" id="dark-tgl" onclick="toggleDark()"></div>
+        </div>
+        <div class="setting-row" style="cursor:pointer;" onclick="openFeeModal()">
+          <span class="setting-lbl">📊 교습비 계산기</span>
+          <span style="font-size:12px;color:var(--text2);">열기 →</span>
+        </div>
+        <div class="card" style="font-size:11px;color:var(--text2);line-height:1.9;">
+          <div class="card-tit">ℹ️ 앱 정보</div>
+          태고맵 v2.0<br>
+          법적 근거: 학원법 §15 · 식품위생법 시행규칙 §57<br>
+          관할: 경기도광주하남교육지원청 031-760-4500<br>
+          taegomap.web.app
+        </div>
+      </div>
+    </div>
+  </div><!-- /mob-content -->
+
+  <!-- 광고 AD-3 -->
+  <div class="ad-anchor" id="ad-anchor">
+    <div class="ad-ph">광고 · 구글 애드센스 320×50 앵커</div>
+  </div>
+
+  <!-- 하단 탭바 (모바일) -->
+  <div id="tabbar">
+    <button class="tb-btn on" id="tb-map" onclick="switchTab('map')">
+      <div class="tb-icon">🗺</div>지도
+    </button>
+    <button class="tb-btn" id="tb-hotdeal" onclick="switchTab('hotdeal')">
+      <div class="tb-icon">🔥</div>핫딜
+    </button>
+    <button class="tb-btn" id="tb-ranking" onclick="switchTab('ranking')">
+      <div class="tb-icon">🏆</div>랭킹
+    </button>
+    <button class="tb-btn" id="tb-community" onclick="switchTab('community')">
+      <div class="tb-icon">💬</div>커뮤니티
+    </button>
+    <button class="tb-btn" id="tb-my" onclick="switchTab('my')">
+      <div class="tb-icon">👤</div>내정보
+    </button>
+  </div>
+</div><!-- /app -->
+
+<!-- 토스트 -->
+<div id="toast"></div>
+
+<!-- 모달 -->
+<div id="modal-wrap">
+  <div id="modal-box">
+    <div class="modal-hdr">
+      <span class="modal-tit" id="modal-tit">제목</span>
+      <button class="modal-cls" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn-primary" id="modal-ok" onclick="submitModal()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     JavaScript
+════════════════════════════════════════ -->
+<script>
+/* ────────────────────────────────────────
+   0. 교습비 조정기준 2025.2.1 (경기도광주하남교육지원청)
+   법적 근거: 학원법 §15③⑥ / 경기도 학원 조례 시행규칙 §8의2
+──────────────────────────────────────── */
+const RATES = {
+  '보습_초등':     {rate:210, label:'보습 단과 초등', domain:'보습', grade:'초등'},
+  '보습_중등':     {rate:222, label:'보습 단과 중등', domain:'보습', grade:'중등'},
+  '보습_고등':     {rate:234, label:'보습 단과 고등', domain:'보습', grade:'고등'},
+  '진학지도_전체': {rate:234, label:'진학지도·상담', domain:'진학지도', grade:'전체'},
+  '외국어_전체':   {rate:259, label:'외국어 어학', domain:'외국어', grade:'전체'},
+  '음악_일반':     {rate:224, label:'음악 일반(유·초·중·고)', domain:'음악', grade:'일반'},
+  '음악_입시':     {rate:336, label:'음악 입시', domain:'음악', grade:'입시'},
+  '미술_일반':     {rate:212, label:'미술 일반(유·초·중·고)', domain:'미술', grade:'일반'},
+  '미술_입시':     {rate:255, label:'미술 입시', domain:'미술', grade:'입시'},
+  '무용_일반':     {rate:212, label:'무용 일반(유·초·중·고)', domain:'무용', grade:'일반'},
+  '무용_입시':     {rate:255, label:'무용 입시', domain:'무용', grade:'입시'},
+  '독서실_다인실': {isFlat:true, flatDay:8960, flatMonth:140280, label:'독서실 다인실', domain:'독서실', grade:'다인실'},
+  '독서실_1인실':  {isFlat:true, flatDay:10440, flatMonth:166650, label:'독서실 1인실', domain:'독서실', grade:'1인실'},
+  '정보_일반':     {rate:230, label:'정보 일반', domain:'정보', grade:'일반'},
+  '기타_일반':     {rate:230, label:'기타(직업기술·인문사회·기예·공예)', domain:'기타', grade:'일반'},
+  '과외_초중고':   {rate:333, hourly:20000, label:'개인과외(초·중·고)', domain:'개인과외', grade:'초·중·고'},
+};
+const MW = 4.3; // 월 수업주수
+const legalFee = (key, min=60, sess=5) => {
+  const r = RATES[key]; if(!r) return null;
+  if(r.isFlat) return r.flatMonth;
+  return Math.floor(r.rate * min * sess * MW);
+};
+
+/* ────────────────────────────────────────
+   1. 샘플 데이터
+──────────────────────────────────────── */
+const PLACES = [
+  {
+    id:'p001', name:'태전영어학원', category:'academy',
+    lat:37.3901, lng:127.2461,
+    regNo:'경기광주하남-2023-0041',
+    rateKey:'보습_중등', feeMin:60, feeSess:5,
+    actualFee:{tuition:320000, textbook:20000, shuttle:30000, mockExam:0, material:0, meal:0},
+    subject:'영어', grade:'중등',
+    cpUp:45, cpDown:3, saves:23,
+    kidTags:{친절해요:12, 숙제많아요:8, 간식있어요:5, 재밌어요:7, 이해잘돼요:4},
+    comments:[
+      {nick:'태전주민#A4F2', text:'셔틀이 정확하고 선생님 친절해요', time:'2시간 전'},
+      {nick:'태전주민#B3C1', text:'교재비가 좀 있지만 실력이 올라요', time:'어제'},
+    ]
+  },
+  {
+    id:'p002', name:'고산수학교습소', category:'study',
+    lat:37.3878, lng:127.2432,
+    regNo:'경기광주하남-2024-0118',
+    rateKey:'보습_초등', feeMin:60, feeSess:3,
+    actualFee:{tuition:160000, textbook:10000, shuttle:0, mockExam:0, material:0, meal:0},
+    subject:'수학', grade:'초등',
+    cpUp:22, cpDown:1, saves:11,
+    kidTags:{친절해요:8, 숙제많아요:15, 재밌어요:3},
+    comments:[{nick:'태전주민#C2A1', text:'실력이 눈에 보여요!', time:'3일 전'}]
+  },
+  {
+    id:'p003', name:'태전 돼지국밥', category:'food',
+    lat:37.3895, lng:127.2448,
+    businessType:'일반음식점',
+    menu:[
+      {name:'돼지국밥', price:7000, unit:'1인분'},
+      {name:'순대국밥', price:8000, unit:'1인분'},
+      {name:'내장국밥', price:8000, unit:'1인분'},
+    ],
+    vatIncluded:true, priceMin:7000, priceMax:8000,
+    gyugi:true, kidsOk:true, noKids:false, parking:'street',
+    votes:{tu:87, td:5, au:92, ad:3, vu:95, vd:4},
+    cpUp:87, cpDown:5, saves:67,
+    comments:[{nick:'태전주민#D5F3', text:'양 많고 국물 진해요. 경유기 돼요!', time:'1시간 전'}]
+  },
+  {
+    id:'p004', name:'에메랄드 카페', category:'cafe',
+    lat:37.3888, lng:127.2465,
+    businessType:'휴게음식점',
+    menu:[
+      {name:'아이스 아메리카노', price:4500, unit:'1잔'},
+      {name:'카페라떼', price:5500, unit:'1잔'},
+      {name:'바닐라라떼', price:6000, unit:'1잔'},
+    ],
+    vatIncluded:true, priceMin:4500, priceMax:6000,
+    gyugi:true, kidsOk:true, noKids:false, parking:'easy',
+    votes:{tu:134, td:8, au:120, ad:5, vu:140, vd:6},
+    cpUp:134, cpDown:8, saves:89,
+    hotdeal:{title:'아이스 아메리카노 1+1', desc:'평일 오후 2~5시, 경유기 결제 시'},
+    comments:[
+      {nick:'태전주민#E8B2', text:'카공하기 좋아요! 조용하고 콘센트 많아요', time:'30분 전'},
+    ]
+  },
+  {
+    id:'p005', name:'태전 피아노학원', category:'academy',
+    lat:37.3905, lng:127.2439,
+    regNo:'경기광주하남-2022-0087',
+    rateKey:'음악_일반', feeMin:30, feeSess:8,
+    actualFee:{tuition:280000, textbook:0, shuttle:0, mockExam:0, material:15000, meal:0},
+    subject:'음악(피아노)', grade:'초등',
+    cpUp:31, cpDown:2, saves:18,
+    kidTags:{친절해요:18, 재밌어요:12, 간식있어요:2},
+    comments:[]
+  },
+  {
+    id:'p006', name:'고산 봄 카페', category:'cafe',
+    lat:37.3872, lng:127.2478,
+    businessType:'휴게음식점',
+    menu:[
+      {name:'아메리카노', price:4000, unit:'1잔'},
+      {name:'라떼', price:5000, unit:'1잔'},
+    ],
+    vatIncluded:true, priceMin:4000, priceMax:5000,
+    gyugi:false, kidsOk:false, noKids:false, parking:'public',
+    votes:{tu:54, td:3, au:48, ad:4, vu:62, vd:2},
+    cpUp:54, cpDown:3, saves:34,
+    comments:[]
+  },
+];
+
+const HOTDEALS = [
+  {id:'h001',category:'cafe',placeId:'p004',title:'아이스 아메리카노 1+1',desc:'평일 오후 2~5시, 경유기 결제 시',expires:'today',likes:67,nick:'태전주민#A1B2',time:'3시간 전'},
+  {id:'h002',category:'market',title:'GS25 태전점 삼겹살 3,900원',desc:'마감세일 매일 오후 7시~9시',expires:'today',likes:34,nick:'태전주민#C3D4',time:'2시간 전'},
+  {id:'h003',category:'academy',placeId:'p001',title:'태전영어학원 신규등록 할인',desc:'이번달 신규 등록 시 교재비 면제',expires:'thismonth',likes:12,nick:'태전주민#E5F6',time:'어제'},
+  {id:'h004',category:'food',title:'태전 돼지국밥 경유기 추가 적립',desc:'경기지역화폐 5% 추가 적립 이벤트',expires:'thisweek',likes:28,nick:'태전주민#G7H8',time:'어제'},
+];
+
+const POSTS = [
+  {id:'q001',board:'academy',title:'OO영어학원 레벨테스트 후기 공유해요',preview:'지난주에 다녀왔는데 테스트 문제가 생각보다 쉬웠어요. 1레벨이 나왔는데 맞는 레벨인지 궁금해요.',nick:'태전주민#P1Q2',likes:12,views:45,time:'1시간 전'},
+  {id:'q002',board:'food',title:'태전 돼지국밥 진짜 맛있더라고요',preview:'오늘 점심에 처음 가봤는데 양도 많고 국물도 진해요. 경유기도 돼서 더 좋았어요!',nick:'태전주민#R3S4',likes:24,views:89,time:'3시간 전'},
+  {id:'q003',board:'community',title:'태전 2지구 신규 카페 개업 소식',preview:'태전 2지구 상가에 새로운 디저트 카페가 생겼어요. 누구 가보셨어요?',nick:'태전주민#T5U6',likes:8,views:34,time:'어제'},
+  {id:'q004',board:'market',title:'초등 수학 문제집 나눔합니다',preview:'최상위 수학 3-1 거의 새책이에요. 직거래 원해요. 태전역 근처 가능합니다.',nick:'태전주민#V7W8',likes:3,views:15,time:'어제'},
+];
+
+/* ────────────────────────────────────────
+   2. 전역 상태
+──────────────────────────────────────── */
+var map2d, markerLayer;
+var TG_UID='', TG_NICK='';
+var voted={}, savedIds=[];
+var curCat='all', curPf='all', curHdf='all', curRkf='all', curBdf='all';
+var curTab='map', curSideTab='map';
+var isDark=false;
+var stats={saves:0,votes:0,rpts:0,posts:0};
+var curPlaceId=null;
+
+/* ────────────────────────────────────────
+   3. 유틸리티
+──────────────────────────────────────── */
+const fmt  = n => n?Number(n).toLocaleString('ko-KR')+'원':'—';
+const cpOf = (u,d) => { var t=(u||0)+(d||0); return t>=3?((u||0)/t*5).toFixed(1):null; };
+const cpFood = v => {
+  if(!v) return null;
+  var sc = (u,d) => ((u||0)+(d||0))>=3?((u||0)/((u||0)+(d||0))*5):null;
+  var t=sc(v.tu,v.td), a=sc(v.au,v.ad), vl=sc(v.vu,v.vd);
+  var vals=[t,a,vl].filter(x=>x!==null);
+  if(!vals.length) return null;
+  return ((vl||0)*0.4+(t||0)*0.35+(a||0)*0.25).toFixed(1);
+};
+const stars = s => { if(!s) return '투표 없음'; var n=parseFloat(s); return '⭐'.repeat(Math.floor(n))+(n%1>=0.5?'✨':'')+'☆'.repeat(5-Math.floor(n)-(n%1>=0.5?1:0))+' '+s; };
+const catColor = c => ({academy:'var(--c-academy)',study:'var(--c-study)',food:'var(--c-food)',cafe:'var(--c-cafe)',reading_room:'var(--pu)'}[c]||'var(--g3)');
+const catEmoji = c => ({academy:'🎓',study:'✏️',food:'🍚',cafe:'☕',reading_room:'📖'}[c]||'📍');
+const catLabel = c => ({academy:'학원',study:'공부방',food:'식당',cafe:'카페',reading_room:'독서실'}[c]||c);
+const isEdu   = c => ['academy','study','reading_room'].includes(c);
+const isDesktop = () => window.innerWidth>=800;
+
+const toast = (msg,dur=3000) => {
+  var el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),dur);
+};
+const rankScore = p => {
+  var cp=parseFloat(isEdu(p.category)?cpOf(p.cpUp,p.cpDown):cpFood(p.votes))||0;
+  var tv=(p.cpUp||0)+(p.cpDown||0);
+  return cp*40+Math.min(tv,100)*0.3+Math.min(p.saves||0,100)*0.3;
+};
+
+/* ────────────────────────────────────────
+   4. 사용자 초기화
+──────────────────────────────────────── */
+function initUser() {
+  TG_UID  = localStorage.getItem('tg_uid')||('user_'+Math.random().toString(36).substr(2,9));
+  localStorage.setItem('tg_uid',TG_UID);
+  TG_NICK = localStorage.getItem('tg_nick')||('태전주민#'+TG_UID.slice(-4).toUpperCase());
+  localStorage.setItem('tg_nick',TG_NICK);
+  voted    = JSON.parse(localStorage.getItem('tg_v')||'{}');
+  savedIds = JSON.parse(localStorage.getItem('tg_s')||'[]');
+  isDark   = localStorage.getItem('tg_dk')==='1';
+  if(isDark){ document.documentElement.classList.add('dark'); }
+  updateDarkUI();
+  document.getElementById('my-nick').textContent=TG_NICK;
+  document.getElementById('my-uid').textContent=TG_UID;
+  // officialFee 자동 계산
+  PLACES.forEach(p=>{ if(p.rateKey) p.officialFee=legalFee(p.rateKey,p.feeMin,p.feeSess); });
+  updateStats();
+}
+function saveVote(k){ voted[k]=true; localStorage.setItem('tg_v',JSON.stringify(voted)); }
+function hasVote(k){ return !!voted[k]; }
+function saveSave(ids){ savedIds=ids; localStorage.setItem('tg_s',JSON.stringify(ids)); }
+function updateStats(){
+  stats.saves=savedIds.length; stats.votes=Object.keys(voted).length;
+  document.getElementById('s-saves').textContent=stats.saves;
+  document.getElementById('s-votes').textContent=stats.votes;
+  document.getElementById('s-rpts').textContent=stats.rpts||0;
+  document.getElementById('s-posts').textContent=stats.posts||0;
+}
+
+/* ────────────────────────────────────────
+   5. 다크모드
+──────────────────────────────────────── */
+function toggleDark(){
+  isDark=!isDark;
+  document.documentElement.classList.toggle('dark',isDark);
+  localStorage.setItem('tg_dk',isDark?'1':'0');
+  updateDarkUI();
+}
+function updateDarkUI(){
+  document.getElementById('dark-btn').textContent=isDark?'🌙':'☀️';
+  var tgl=document.getElementById('dark-tgl');
+  if(tgl) tgl.classList.toggle('on',isDark);
+}
+
+/* ────────────────────────────────────────
+   6. VWorld 2D 지도 초기화 (UrbanCNS 패턴 동일)
+──────────────────────────────────────── */
+function initMap(){
+  // MapOptions 설정
+  vw.ol3.MapOptions = {
+    basemapType: vw.ol3.BasemapType.GRAPHIC,
+    controlDensity: vw.ol3.DensityType.EMPTY,
+    interactionDensity: vw.ol3.DensityType.BASIC,
+    controlsAutoArrange: true,
+    homePosition: vw.ol3.CameraPosition,
+    initPosition: vw.ol3.CameraPosition
+  };
+  // 2D 지도 생성 (ol3map div에)
+  map2d = new vw.ol3.Map('ol3map', vw.ol3.MapOptions);
+  // 태전지구 중심 좌표로 이동
+  map2d.getView().setCenter(ol.proj.fromLonLat([127.2456, 37.3892]));
+  map2d.getView().setZoom(15);
+
+  // 마커 레이어 생성
+  markerLayer = new vw.ol3.layer.Marker(map2d, { showTitle:false });
+  map2d.addLayer(markerLayer);
+
+  // 지도 클릭 → 가장 가까운 마커 찾기
+  map2d.on('singleclick', function(evt){
+    var clickCoord = ol.proj.toLonLat(evt.coordinate);
+    var clickLng = clickCoord[0], clickLat = clickCoord[1];
+    var best=null, bestDist=Infinity;
+    var filtered = getFilteredPlaces();
+    filtered.forEach(function(p){
+      // 화면 픽셀 기준 거리 계산
+      var pCoord = ol.proj.fromLonLat([p.lng, p.lat]);
+      var pPx = map2d.getPixelFromCoordinate(pCoord);
+      var cPx = map2d.getPixelFromCoordinate(evt.coordinate);
+      if(!pPx||!cPx) return;
+      var dx=pPx[0]-cPx[0], dy=pPx[1]-cPx[1];
+      var d=Math.sqrt(dx*dx+dy*dy);
+      if(d<40&&d<bestDist){ bestDist=d; best=p; }
+    });
+    if(best){ openPlace(best.id); }
+    else { closeSheet(); }
+  });
+
+  // 지도 이동 후 TOP3 갱신
+  map2d.on('moveend', renderTop3);
+
+  // 마커 렌더
+  loadMarkers();
+}
+
+/* ────────────────────────────────────────
+   7. 마커 관리
+──────────────────────────────────────── */
+var mkCache = {}; // id → markerRef
+
+function getFilteredPlaces(){
+  return PLACES.filter(function(p){
+    if(curCat!=='all'&&p.category!==curCat) return false;
+    if(curPf!=='all'){
+      if(isEdu(p.category)){
+        var fee=p.officialFee||0;
+        if(curPf==='l10'&&fee>100000) return false;
+        if(curPf==='10-20'&&(fee<=100000||fee>200000)) return false;
+        if(curPf==='20-30'&&(fee<=200000||fee>300000)) return false;
+        if(curPf==='30-40'&&(fee<=300000||fee>400000)) return false;
+        if(curPf==='h40'&&fee<=400000) return false;
+      } else {
+        var pm=p.priceMin||0;
+        if(curPf==='l5'&&pm>5000) return false;
+        if(curPf==='5-8'&&(pm<=5000||pm>8000)) return false;
+        if(curPf==='8-10'&&(pm<=8000||pm>10000)) return false;
+        if(curPf==='h10'&&pm<=10000) return false;
+      }
+    }
+    return true;
+  });
+}
+
+function getSVGUrl(category, cpScore, hasHotdeal, isFlagged){
+  var colors={academy:'#3B82F6',study:'#8B5CF6',food:'#F97316',cafe:'#10B981',reading_room:'#8B5CF6'};
+  var icons={academy:'학',study:'방',food:'밥',cafe:'카',reading_room:'독'};
+  var c=isFlagged?'#9CA3AF':(colors[category]||'#6B7280');
+  var icon=icons[category]||'?';
+  var hasCP=cpScore&&parseFloat(cpScore)>=4.5;
+  var borderW=hasCP?3:0, borderC=hasCP?'#F59E0B':c;
+  var svg='<svg width="44" height="54" viewBox="0 0 44 54" xmlns="http://www.w3.org/2000/svg">'
+    +'<filter id="sh"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.25"/></filter>'
+    +'<path d="M22 2C13 2 5.5 9.5 5.5 18.5C5.5 30.5 22 52 22 52C22 52 38.5 30.5 38.5 18.5C38.5 9.5 31 2 22 2Z" fill="'+c+'" filter="url(#sh)" stroke="'+borderC+'" stroke-width="'+borderW+'"/>'
+    +'<circle cx="22" cy="18" r="9" fill="white" opacity="0.95"/>'
+    +'<text x="22" y="23" text-anchor="middle" fill="'+c+'" font-size="11" font-weight="bold" font-family="sans-serif">'+icon+'</text>';
+  if(hasCP) svg+='<circle cx="34" cy="8" r="7" fill="#F59E0B"/><text x="34" y="12" text-anchor="middle" fill="white" font-size="9" font-weight="bold" font-family="sans-serif">CP</text>';
+  if(hasHotdeal) svg+='<circle cx="34" cy="8" r="7" fill="#EF4444"/><text x="34" y="12" text-anchor="middle" fill="white" font-size="10" font-family="sans-serif">🔥</text>';
+  svg+='</svg>';
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+
+function loadMarkers(){
+  if(!map2d||!markerLayer) return;
+  // 기존 마커 제거
+  Object.keys(mkCache).forEach(function(id){
+    try{ markerLayer.removeMarker(mkCache[id]); }catch(e){}
+  });
+  mkCache={};
+
+  var places=getFilteredPlaces();
+  places.forEach(function(p){
+    var cp=isEdu(p.category)?cpOf(p.cpUp,p.cpDown):cpFood(p.votes);
+    var isFlagged=(p.status==='flagged'||p.status==='closed');
+    var hasHotdeal=!!p.hotdeal;
+    var mk=markerLayer.addMarker({
+      x: p.lng, y: p.lat, epsg:'EPSG:4326',
+      iconUrl: getSVGUrl(p.category, cp, hasHotdeal, isFlagged),
+      iconSize: [44, 54],
+      iconAnchor: [22, 54],
+      attr: { id:'mk_'+p.id }
+    });
+    if(mk) mkCache[p.id]=mk;
+  });
+  renderTop3();
+}
+
+/* ────────────────────────────────────────
+   8. TOP3 바
+──────────────────────────────────────── */
+function renderTop3(){
+  var bar=document.getElementById('top3-bar');
+  var top3=[...PLACES].sort(function(a,b){ return rankScore(b)-rankScore(a); }).slice(0,3);
+  bar.innerHTML=top3.map(function(p,i){
+    var cp=isEdu(p.category)?cpOf(p.cpUp,p.cpDown):cpFood(p.votes);
+    var colors=['#F59E0B','#9CA3AF','#D97706'];
+    return '<div class="t3card" onclick="openPlace(\''+p.id+'\')">'
+      +'<div class="t3rank" style="background:'+colors[i]+'">'+(i+1)+'</div>'
+      +'<div class="t3info">'
+      +'<div class="t3name">'+catEmoji(p.category)+' '+p.name+'</div>'
+      +'<div class="t3meta">'+(cp?'⭐'+cp:'CP없음')+' · ❤️'+p.saves+'</div>'
+      +'</div></div>';
+  }).join('');
+  // 스폰서
+  bar.innerHTML+='<div class="t3card" style="border-color:var(--em);opacity:.8;" onclick="toast(\'광고 문의: ad@taegomap.kr\')">'
+    +'<div class="t3rank" style="background:var(--em)">광고</div>'
+    +'<div class="t3info"><div class="t3name" style="color:var(--em-d)">이 자리 광고 넣기</div>'
+    +'<div class="t3meta">월 5만원~ · 태전·고산 도달</div></div></div>';
+}
+
+/* ────────────────────────────────────────
+   9. 탭 전환
+──────────────────────────────────────── */
+function switchTab(tab){
+  curTab=tab;
+  // 모바일: 지도/사이드 전환
+  var mc=document.getElementById('mob-content');
+  var mapPanel=document.getElementById('map-panel');
+  document.getElementById('ad-anchor').style.display='flex';
+
+  document.querySelectorAll('.tb-btn').forEach(function(b){ b.classList.toggle('on',b.id==='tb-'+tab); });
+
+  if(tab==='map'){
+    mc.classList.remove('show');
+    mapPanel.style.display='flex';
+    document.getElementById('ad-anchor').style.display='flex';
+  } else {
+    mapPanel.style.display= isDesktop()?'flex':'none';
+    mc.classList.add('show');
+    document.querySelectorAll('#mob-content .tab-panel').forEach(function(p){ p.classList.remove('active'); });
+    var tp=document.getElementById('mob-'+tab);
+    if(tp) tp.classList.add('active');
+    if(tab==='hotdeal') renderHotdeals();
+    if(tab==='ranking') renderRanking();
+    if(tab==='community') renderPosts();
+    if(tab==='my') renderMyTab();
+  }
+}
+
+function setSideTab(btn){
+  var st=btn.dataset.st;
+  curSideTab=st;
+  document.querySelectorAll('.side-tab').forEach(function(b){ b.classList.toggle('on',b.dataset.st===st); });
+  document.querySelectorAll('#side-panel .tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('st-'+st).classList.add('active');
+  if(st==='hotdeal') renderHotdeals();
+  if(st==='ranking') renderRanking();
+  if(st==='community') renderPosts();
+}
+
+/* ────────────────────────────────────────
+   10. 카테고리 / 가격 필터
+──────────────────────────────────────── */
+function setCategory(btn){
+  curCat=btn.dataset.c; curPf='all';
+  document.querySelectorAll('.cat-btn').forEach(function(b){ b.classList.toggle('on',b.dataset.c===curCat); });
+  var pb=document.getElementById('price-bar');
+  if(curCat==='all'){ pb.classList.remove('show'); pb.innerHTML=''; }
+  else {
+    pb.classList.add('show');
+    var edu=isEdu(curCat);
+    var opts=edu
+      ?[['all','전체'],['l10','10만↓'],['10-20','10~20만'],['20-30','20~30만'],['30-40','30~40만'],['h40','40만↑']]
+      :[['all','전체'],['l5','5천↓'],['5-8','5~8천'],['8-10','8천~1만'],['h10','1만↑']];
+    pb.innerHTML=opts.map(function(o){
+      return '<button class="pf-btn'+(o[0]==='all'?' on':'')+'" data-pf="'+o[0]+'" onclick="setPf(this)">'+o[1]+'</button>';
+    }).join('');
+  }
+  loadMarkers();
+}
+window.setPf=function(btn){
+  curPf=btn.dataset.pf;
+  document.querySelectorAll('.pf-btn').forEach(function(b){ b.classList.toggle('on',b.dataset.pf===curPf); });
+  loadMarkers();
+};
+
+/* ────────────────────────────────────────
+   11. 장소 열기 (시트 / 사이드패널)
+──────────────────────────────────────── */
+function openPlace(id){
+  curPlaceId=id;
+  var p=PLACES.find(function(x){ return x.id===id; });
+  if(!p) return;
+  var html=buildSheetHTML(p);
+  if(isDesktop()){
+    // 데스크톱: 사이드패널 지도정보 탭에 표시
+    document.getElementById('desktop-sheet').innerHTML=html;
+    setSideTab(document.querySelector('.side-tab[data-st="map"]'));
+    initCalcBox();
+  } else {
+    // 모바일: 하단 시트
+    document.getElementById('sheet-body').innerHTML=html;
+    document.getElementById('sheet-overlay').classList.add('show');
+    requestAnimationFrame(function(){ document.getElementById('sheet').classList.add('open'); });
+    initCalcBox();
+  }
+}
+function closeSheet(){
+  document.getElementById('sheet-overlay').classList.remove('show');
+  document.getElementById('sheet').classList.remove('open');
+  curPlaceId=null;
+}
+
+/* ────────────────────────────────────────
+   12. 시트 HTML 빌더
+──────────────────────────────────────── */
+function buildSheetHTML(p){
+  var edu=isEdu(p.category);
+  var cp=edu?cpOf(p.cpUp,p.cpDown):cpFood(p.votes);
+  var saved=savedIds.includes(p.id);
+
+  var h='';
+  // 헤더
+  h+='<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">'
+    +'<div style="width:48px;height:48px;border-radius:12px;background:'+catColor(p.category)+';display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">'+catEmoji(p.category)+'</div>'
+    +'<div style="flex:1;min-width:0;">'
+    +'<div style="font-size:17px;font-weight:700;margin-bottom:5px;">'+p.name+'</div>'
+    +'<div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;">'
+    +'<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:'+catColor(p.category)+';color:#fff;">'+catLabel(p.category)+'</span>'
+    +(cp?'<span style="font-size:11px;">'+stars(cp)+'</span>':'<span style="font-size:11px;color:var(--text2);">CP없음</span>')
+    +(p.hotdeal?'<span style="font-size:10px;font-weight:700;color:var(--rd);background:var(--rd-l);padding:2px 7px;border-radius:999px;">🔥 핫딜</span>':'')
+    +'</div></div></div>';
+
+  // 저장/신고 버튼
+  h+='<div class="action-row">'
+    +'<button class="action-btn'+(saved?' saved':'')+'" id="save-btn-'+p.id+'" onclick="handleSave(\''+p.id+'\')">'+(saved?'💚 저장됨':'❤️ 저장')+'</button>'
+    +'<button class="action-btn" onclick="toast(\'신고가 접수됩니다\')">⚠️ 신고</button>'
+    +'</div>';
+
+  // 가격 섹션
+  h += edu ? buildEduPrice(p) : buildFoodPrice(p);
+  // 투표
+  h += edu ? buildEduVote(p) : buildFoodVote(p);
+  // 아이 태그 (교육)
+  if(edu) h+=buildKidTags(p);
+  // 광고 슬롯 AD-4
+  h+='<div class="ad-slot" onclick="toast(\'광고 문의: ad@taegomap.kr\')">'
+    +'<div class="ad-slot-ico">'+catEmoji(p.category)+'</div>'
+    +'<div class="ad-slot-body">'
+    +'<div class="ad-slot-tit">이 자리에 '+catLabel(p.category)+' 광고 넣기</div>'
+    +'<div class="ad-slot-sub">태전·고산 학부모 직접 도달 · 월 5만원~</div>'
+    +'</div>'
+    +'<div class="ad-slot-badge">광고</div></div>';
+  // 댓글
+  h+=buildComments(p);
+  return h;
+}
+
+/* ────────────────────────────────────────
+   13. 교육 분야 가격 섹션
+──────────────────────────────────────── */
+function buildEduPrice(p){
+  var legal=p.officialFee||0;
+  var af=p.actualFee||{};
+  var tuition=af.tuition||0;
+  var extras=(af.textbook||0)+(af.shuttle||0)+(af.mockExam||0)+(af.material||0)+(af.meal||0);
+  var total=tuition+extras;
+  var diff=tuition-legal;
+  var pct=legal>0?(diff/legal*100).toFixed(1):0;
+  var isOver=diff>0, isAlarm=diff>legal*0.05;
+
+  var h='<div class="card">'
+    +'<div class="card-tit">💰 교습비 정보 <span class="law-tag">학원법 §15③</span></div>';
+
+  if(p.regNo) h+='<div style="font-size:11px;color:var(--text2);margin-bottom:8px;">등록번호: '+p.regNo+'</div>';
+
+  if(legal){
+    var r=RATES[p.rateKey];
+    h+='<div class="fee-row"><span class="fee-lbl">법정 최대 교습비 <span class="law-tag">조정기준</span></span>'
+      +'<span class="fee-val blue">'+fmt(legal)+'</span></div>';
+    if(r&&!r.isFlat) h+='<div style="font-size:10px;color:var(--text2);padding:2px 0 5px;">'+r.rate+'원/분 × '+p.feeMin+'분 × 주'+p.feeSess+'회 × 4.3주</div>';
+  }
+  if(tuition) h+='<div class="fee-row"><span class="fee-lbl">수강료 (제보)</span><span class="fee-val '+(isOver?'red':'green')+'">'+fmt(tuition)+'</span></div>';
+  if(extras>0){
+    h+='<div class="fee-row"><span class="fee-lbl">기타경비 합계 <span class="law-tag">시행령§16</span></span><span class="fee-val amber">'+fmt(extras)+'</span></div>';
+    if(af.textbook) h+='<div style="padding:1px 0 1px 12px;font-size:11px;color:var(--text2);">└ 교재비: '+fmt(af.textbook)+'</div>';
+    if(af.shuttle)  h+='<div style="padding:1px 0 1px 12px;font-size:11px;color:var(--text2);">└ 차량비: '+fmt(af.shuttle)+'</div>';
+    if(af.mockExam) h+='<div style="padding:1px 0 1px 12px;font-size:11px;color:var(--text2);">└ 모의고사비: '+fmt(af.mockExam)+'</div>';
+    if(af.material) h+='<div style="padding:1px 0 1px 12px;font-size:11px;color:var(--text2);">└ 재료비: '+fmt(af.material)+'</div>';
+  }
+  if(total>0) h+='<div class="fee-row" style="font-weight:700;"><span class="fee-lbl">실제 총 납부액 (교습비등)</span><span class="fee-val '+(isOver?'red':'green')+'">'+fmt(total)+'</span></div>';
+
+  // 비교 막대
+  if(legal&&tuition){
+    var bPct=Math.min(200,Math.round(tuition/legal*100));
+    h+='<div class="bar-wrap">'
+      +'<div class="bar-row"><div class="bar-label-row"><span>법정 교습비</span><span>'+fmt(legal)+'</span></div>'
+      +'<div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--bl-d);"></div></div></div>'
+      +'<div class="bar-row"><div class="bar-label-row"><span>실제 수강료</span><span>'+fmt(tuition)+'</span></div>'
+      +'<div class="bar-track"><div class="bar-fill" style="width:'+bPct+'%;background:'+(isAlarm?'var(--rd)':isOver?'var(--am)':'var(--em)')+';"></div></div></div>'
+      +'</div>'
+      +'<div><span class="excess-badge '+(isOver?'over':'safe')+'">'+(isOver?'⚠ '+Math.abs(pct)+'% 초과':'✓ 법정 범위 내 ('+Math.abs(pct)+'%↓)')+'</span></div>';
+  }
+  if(isAlarm){
+    h+='<div class="warn-box" style="margin-top:8px;">'
+      +'⚠️ 수강료가 법정 교습비를 <strong>'+pct+'%</strong> 초과합니다.<br>'
+      +'학원법 제15조 제4항 위반 — 등록말소·교습정지·과태료 300만원 이하<br>'
+      +'<a href="tel:031-760-4500">📞 경기도광주하남교육지원청 031-760-4500</a>'
+      +'</div>';
+  }
+  h+='</div>';
+
+  // 교습비 계산기
+  var rOpts=Object.entries(RATES).filter(function(e){ return !e[1].isFlat; })
+    .map(function(e){ return '<option value="'+e[0]+'"'+(p.rateKey===e[0]?' selected':'')+'>'+e[1].label+'</option>'; }).join('');
+  h+='<div class="fee-calc">'
+    +'<div class="fee-calc-tit">📊 교습비 계산기 <span class="law-tag">2025.2.1.</span></div>'
+    +'<div class="fc-grid">'
+    +'<div class="fc-item"><label>교습 유형</label><select id="fc-rate" onchange="calcBox()">'+rOpts+'</select></div>'
+    +'<div class="fc-item"><label>교습시간(분)</label><select id="fc-min" onchange="calcBox()">'
+    +'<option value="30">30분</option><option value="40">40분</option><option value="50">50분</option>'
+    +'<option value="60"'+(p.feeMin===60||!p.feeMin?' selected':'')+'>60분</option>'
+    +'<option value="80">80분</option><option value="90"'+(p.feeMin===90?' selected':'')+'>90분</option>'
+    +'<option value="120">120분</option></select></div>'
+    +'<div class="fc-item"><label>주당 횟수</label><select id="fc-sess" onchange="calcBox()">'
+    +[1,2,3,4,5,6].map(function(n){ return '<option value="'+n+'"'+(p.feeSess===n?' selected':'')+'>'+n+'회</option>'; }).join('')
+    +'</select></div>'
+    +'<div class="fc-item"><label>월 수업주수</label><select id="fc-wks" onchange="calcBox()">'
+    +'<option value="4">4주</option><option value="4.3" selected>4.3주(기준)</option><option value="4.5">4.5주</option>'
+    +'</select></div></div>'
+    +'<div class="fc-result"><span class="fc-result-lbl">월 법정 최대 교습비</span>'
+    +'<span class="fc-result-val" id="fc-result">계산 중...</span></div>'
+    +'</div>';
+  return h;
+}
+
+function initCalcBox(){ setTimeout(calcBox,100); }
+window.calcBox=function(){
+  var rk=document.getElementById('fc-rate')?.value;
+  var mn=parseInt(document.getElementById('fc-min')?.value||60);
+  var ss=parseInt(document.getElementById('fc-sess')?.value||5);
+  var wk=parseFloat(document.getElementById('fc-wks')?.value||4.3);
+  var r=RATES[rk]; if(!r) return;
+  var res=r.isFlat?r.flatMonth:Math.floor(r.rate*mn*ss*wk);
+  var el=document.getElementById('fc-result');
+  if(el) el.textContent=res.toLocaleString('ko-KR')+'원/월';
+};
+
+/* ────────────────────────────────────────
+   14. 먹거리 분야 가격 섹션
+──────────────────────────────────────── */
+function buildFoodPrice(p){
+  var v=p.votes||{};
+  var h='<div class="card">'
+    +'<div class="card-tit">💰 메뉴 & 가격 <span class="law-tag">식품위생법 §57</span></div>'
+    +'<div style="font-size:11px;color:var(--text2);margin-bottom:8px;">'
+    +(p.businessType||'식품접객업')+' · VAT '+(p.vatIncluded?'포함':'별도')
+    +(p.gyugi?' · 💳 경유기 가맹':'')+(!p.noKids?' · 👶 아이동반 가능':' · 🚫 노키즈')
+    +'</div>';
+  if(p.menu&&p.menu.length){
+    p.menu.forEach(function(m){
+      h+='<div class="fee-row"><span class="fee-lbl">'+m.name+'<span style="font-size:10px;color:var(--text2);"> / '+m.unit+'</span></span>'
+        +'<span class="fee-val">'+fmt(m.price)+'</span></div>';
+    });
+  }
+  // 지역 평균 비교
+  var same=PLACES.filter(function(x){ return x.category===p.category&&x.priceMin; });
+  if(same.length>=2&&p.priceMin){
+    var avg=Math.round(same.reduce(function(s,x){ return s+(x.priceMin||0); },0)/same.length);
+    var diff=avg-p.priceMin;
+    h+='<div class="info-box" style="margin-top:8px;">'
+      +'최저 메뉴 <strong>'+fmt(p.priceMin)+'</strong> — 지역 평균('+fmt(avg)+')보다 '
+      +'<strong style="color:'+(diff>0?'var(--em-d)':'var(--or)')+'">'+Math.abs(diff).toLocaleString()+'원 '+(diff>0?'저렴':'비쌈')+'</strong>'
+      +'</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+/* ────────────────────────────────────────
+   15. 투표 섹션
+──────────────────────────────────────── */
+function buildEduVote(p){
+  var cp=cpOf(p.cpUp,p.cpDown);
+  var total=(p.cpUp||0)+(p.cpDown||0);
+  return '<div class="card">'
+    +'<div class="card-tit">👍 가성비 투표</div>'
+    +'<div style="font-size:12px;color:var(--text2);margin-bottom:6px;">이 학원, 가성비 어떤가요?</div>'
+    +'<div class="vote-btns">'
+    +'<button class="vote-btn up" onclick="voteCP(\''+p.id+'\',\'up\')">👍 좋아요 <span id="vu-'+p.id+'">'+(p.cpUp||0)+'</span></button>'
+    +'<button class="vote-btn dn" onclick="voteCP(\''+p.id+'\',\'dn\')">👎 별로에요 <span id="vd-'+p.id+'">'+(p.cpDown||0)+'</span></button>'
+    +'</div>'
+    +'<div class="cp-display" id="cp-'+p.id+'">'+(cp?stars(cp)+' ('+total+'명 참여)':'3표 이상 모이면 CP 점수가 표시됩니다')+'</div>'
+    +'</div>';
+}
+
+function buildFoodVote(p){
+  var v=p.votes||{};
+  var cp=cpFood(p.votes);
+  var cats=[
+    {k:'t', lbl:'맛', u:v.tu||0, d:v.td||0},
+    {k:'a', lbl:'양', u:v.au||0, d:v.ad||0},
+    {k:'v', lbl:'가격', u:v.vu||0, d:v.vd||0},
+  ];
+  var h='<div class="card"><div class="card-tit">👍 가성비 투표</div>'
+    +'<div style="margin-bottom:8px;">';
+  cats.forEach(function(c){
+    h+='<div class="v3-row">'
+      +'<span class="v3-label">'+c.lbl+'</span>'
+      +'<div class="v3-btns">'
+      +'<button class="v3-btn up" onclick="vote3(\''+p.id+'\',\''+c.k+'\',\'u\')">👍 '+c.u+'</button>'
+      +'<button class="v3-btn dn" onclick="vote3(\''+p.id+'\',\''+c.k+'\',\'d\')">👎 '+c.d+'</button>'
+      +'</div></div>';
+  });
+  h+='</div>'
+    +'<div class="cp-display" id="cp-'+p.id+'">'+(cp?'종합 CP: '+stars(cp)+' ('+(v.tu+v.td||0)+'명 참여)':'3표 이상 필요')+'</div>'
+    +'</div>';
+  return h;
+}
+
+/* ────────────────────────────────────────
+   16. 아이 태그
+──────────────────────────────────────── */
+function buildKidTags(p){
+  var all=['친절해요','숙제많아요','간식있어요','재밌어요','이해잘돼요','무서워요'];
+  var kt=p.kidTags||{};
+  var h='<div class="card"><div class="card-tit">👦 아이들 솔직 후기</div>'
+    +'<div class="kid-tags">';
+  all.forEach(function(t){
+    var cnt=kt[t]||0;
+    h+='<button class="kid-tag" onclick="kidVote(\''+p.id+'\',\''+t+'\')">'+t+' <span id="kt-'+p.id+'-'+t.length+cnt+'">'+cnt+'</span></button>';
+  });
+  h+='</div></div>';
+  return h;
+}
+
+/* ────────────────────────────────────────
+   17. 댓글
+──────────────────────────────────────── */
+function buildComments(p){
+  var cmts=p.comments||[];
+  var h='<div class="card"><div class="card-tit">💬 댓글</div>'
+    +'<div class="cmt-list" id="cmt-'+p.id+'">';
+  if(cmts.length){
+    cmts.forEach(function(c){
+      h+='<div class="cmt-item"><span class="cmt-nick">'+c.nick+'</span><span class="cmt-time">'+c.time+'</span><div class="cmt-text">'+c.text+'</div></div>';
+    });
+  } else {
+    h+='<div style="font-size:12px;color:var(--text2);text-align:center;padding:8px;">첫 댓글을 남겨보세요!</div>';
+  }
+  h+='</div>'
+    +'<div class="cmt-input-row">'
+    +'<input class="cmt-input" id="ci-'+p.id+'" type="text" placeholder="익명 댓글 (최대 200자)" maxlength="200"/>'
+    +'<button class="cmt-submit" onclick="addCmt(\''+p.id+'\')">등록</button>'
+    +'</div>';
+  // 신고
+  h+='<div class="report-row">'
+    +'<button class="report-btn" onclick="rptPlace(\''+p.id+'\',\'price\')">💰 가격 올랐어요</button>'
+    +'<button class="report-btn" onclick="rptPlace(\''+p.id+'\',\'closed\')">🚫 폐업했어요</button>'
+    +'<button class="report-btn" onclick="rptPlace(\''+p.id+'\',\'wrong\')">❌ 잘못된 정보</button>'
+    +'</div>';
+  h+='</div>';
+  return h;
+}
+
+/* ────────────────────────────────────────
+   18. 투표 핸들러
+──────────────────────────────────────── */
+window.voteCP=function(id, type){
+  if(hasVote(id+'_cp_u')||hasVote(id+'_cp_d')){ toast('이미 투표하셨습니다 😊'); return; }
+  saveVote(id+'_cp_'+type);
+  var p=PLACES.find(function(x){ return x.id===id; }); if(!p) return;
+  if(type==='u') p.cpUp=(p.cpUp||0)+1; else p.cpDown=(p.cpDown||0)+1;
+  var ue=document.getElementById('vu-'+id), de=document.getElementById('vd-'+id);
+  if(ue) ue.textContent=p.cpUp||0;
+  if(de) de.textContent=p.cpDown||0;
+  var cp=cpOf(p.cpUp,p.cpDown);
+  var ce=document.getElementById('cp-'+id);
+  if(ce) ce.textContent=cp?stars(cp)+' ('+(p.cpUp+p.cpDown)+'명 참여)':'3표 이상 필요';
+  stats.votes++; updateStats(); loadMarkers();
+  toast(type==='u'?'👍 투표 완료!':'👎 투표 완료!');
+};
+
+window.vote3=function(id, cat, type){
+  if(hasVote(id+'_'+cat+'_'+type)){ toast('이미 투표하셨습니다 😊'); return; }
+  saveVote(id+'_'+cat+'_'+type);
+  var p=PLACES.find(function(x){ return x.id===id; }); if(!p||!p.votes) return;
+  var key=(type==='u'?'u':'d');
+  p.votes[cat+key]=(p.votes[cat+key]||0)+1;
+  stats.votes++; updateStats();
+  toast('투표 완료!');
+};
+
+window.kidVote=function(id, tag){
+  if(hasVote(id+'_kt_'+tag)){ toast('이미 투표했습니다'); return; }
+  saveVote(id+'_kt_'+tag);
+  var p=PLACES.find(function(x){ return x.id===id; }); if(!p) return;
+  if(!p.kidTags) p.kidTags={};
+  p.kidTags[tag]=(p.kidTags[tag]||0)+1;
+  toast('태그 투표 완료!');
+};
+
+window.handleSave=function(id){
+  var idx=savedIds.indexOf(id);
+  var added; if(idx>=0){ savedIds.splice(idx,1); added=false; } else { savedIds.push(id); added=true; }
+  saveSave(savedIds);
+  var p=PLACES.find(function(x){ return x.id===id; });
+  if(p) p.saves=(p.saves||0)+(added?1:-1);
+  var btn=document.getElementById('save-btn-'+id);
+  if(btn){
+    btn.classList.toggle('saved',added);
+    btn.textContent=added?'💚 저장됨':'❤️ 저장';
+  }
+  stats.saves=savedIds.length; updateStats(); loadMarkers();
+  toast(added?'❤️ 저장했습니다!':'저장 취소했습니다');
+};
+
+window.addCmt=function(id){
+  var inp=document.getElementById('ci-'+id);
+  if(!inp||!inp.value.trim()) return;
+  var p=PLACES.find(function(x){ return x.id===id; }); if(!p) return;
+  var c={nick:TG_NICK, text:inp.value.trim().slice(0,200), time:'방금 전'};
+  if(!p.comments) p.comments=[];
+  p.comments.unshift(c);
+  var list=document.getElementById('cmt-'+id);
+  if(list){
+    var el=document.createElement('div'); el.className='cmt-item';
+    el.innerHTML='<span class="cmt-nick">'+c.nick+'</span><span class="cmt-time">'+c.time+'</span><div class="cmt-text">'+c.text+'</div>';
+    list.insertBefore(el,list.firstChild);
+  }
+  inp.value='';
+  stats.posts++; updateStats();
+  toast('댓글을 등록했습니다!');
+};
+
+window.rptPlace=function(id, type){
+  var p=PLACES.find(function(x){ return x.id===id; }); if(!p) return;
+  if(!p.reports) p.reports={};
+  p.reports[type]=(p.reports[type]||0)+1;
+  if((p.reports.closed||0)>=2) p.status='closed';
+  else if((p.reports.wrong||0)>=3) p.status='flagged';
+  toast('신고가 접수되었습니다. 감사합니다.');
+  loadMarkers();
+};
+
+/* ────────────────────────────────────────
+   19. 핫딜 렌더
+──────────────────────────────────────── */
+var hdFilter='all';
+function renderHotdeals(){
+  var exp={today:'오늘만',thisweek:'이번주',thismonth:'이번달'};
+  var catLbls={academy:'🎓 학원',food:'🍚 식당',cafe:'☕ 카페',market:'🛒 마트',other:'📢 기타'};
+  var list=HOTDEALS.filter(function(h){ return hdFilter==='all'||h.category===hdFilter; });
+  var html=list.map(function(h){
+    return '<div class="hd-card">'
+      +'<div class="hd-top"><span class="hd-badge '+h.category+'">'+(catLbls[h.category]||h.category)+'</span>'
+      +'<span class="exp-badge '+h.expires+'">'+(exp[h.expires]||h.expires)+'</span></div>'
+      +'<div class="hd-tit">'+h.title+'</div>'
+      +(h.desc?'<div class="hd-desc">'+h.desc+'</div>':'')
+      +'<div class="hd-foot"><span>'+h.nick+' · '+h.time+'</span>'
+      +'<button class="like-btn" id="hl-'+h.id+'" onclick="hdLike(\''+h.id+'\')">❤️ '+h.likes+'</button>'
+      +'</div></div>';
+  }).join('')||'<div class="empty"><div class="empty-icon">🔥</div><div class="empty-txt">핫딜이 없습니다</div><div class="empty-sub">첫 번째로 제보해보세요!</div></div>';
+  // 모바일 + 데스크톱 모두 갱신
+  var mob=document.getElementById('hd-list-mob');
+  var desk=document.getElementById('hd-list-desk');
+  if(mob) mob.innerHTML=html;
+  if(desk) desk.innerHTML=html;
+}
+window.setHdFilter=function(btn){
+  hdFilter=btn.dataset.hf;
+  document.querySelectorAll('[data-hf]').forEach(function(b){ b.classList.toggle('on',b.dataset.hf===hdFilter); });
+  renderHotdeals();
+};
+window.hdLike=function(id){
+  if(hasVote('hl_'+id)){ toast('이미 좋아요를 눌렀습니다'); return; }
+  saveVote('hl_'+id);
+  var h=HOTDEALS.find(function(x){ return x.id===id; });
+  if(h){ h.likes++;
+    document.querySelectorAll('#hl-'+id).forEach(function(el){ el.classList.add('liked'); el.textContent='❤️ '+h.likes; });
+  }
+};
+
+/* ────────────────────────────────────────
+   20. 랭킹 렌더
+──────────────────────────────────────── */
+var rkFilter='all';
+function renderRanking(){
+  var places=(rkFilter==='all'?PLACES:PLACES.filter(function(p){ return p.category===rkFilter; }));
+  var sorted=[...places].sort(function(a,b){ return rankScore(b)-rankScore(a); });
+  var cls=['rk-gold','rk-silver','rk-bronze'];
+  var nums=['🥇','🥈','🥉'];
+  var html=sorted.map(function(p,i){
+    var cp=isEdu(p.category)?cpOf(p.cpUp,p.cpDown):cpFood(p.votes);
+    var numHtml=i<3?'<div class="rk-num '+cls[i]+'">'+nums[i]+'</div>'
+      :'<div class="rk-num rk-normal">#'+(i+1)+'</div>';
+    return '<div class="rk-card" onclick="openPlace(\''+p.id+'\')">'
+      +numHtml+'<div class="rk-info">'
+      +'<div class="rk-name">'+catEmoji(p.category)+' '+p.name+'</div>'
+      +'<div class="rk-meta">'+(cp?stars(cp):'CP없음')+' · ❤️'+p.saves+' · '+catLabel(p.category)+'</div>'
+      +'</div><div style="font-size:11px;color:var(--text2);">→</div></div>';
+  }).join('')||'<div class="empty"><div class="empty-icon">🏆</div><div class="empty-txt">등록된 장소가 없습니다</div></div>';
+  var mob=document.getElementById('rk-list-mob');
+  var desk=document.getElementById('rk-list-desk');
+  if(mob) mob.innerHTML=html;
+  if(desk) desk.innerHTML=html;
+}
+window.setRkFilter=function(btn){
+  rkFilter=btn.dataset.rf;
+  document.querySelectorAll('[data-rf]').forEach(function(b){ b.classList.toggle('on',b.dataset.rf===rkFilter); });
+  renderRanking();
+};
+
+/* ────────────────────────────────────────
+   21. 커뮤니티 렌더
+──────────────────────────────────────── */
+var bdFilter='all';
+var boardLbl={academy:'🎓 학원정보',food:'🍽 맛집추천',community:'💬 동네소식',market:'🛒 중고장터'};
+function renderPosts(){
+  var list=(bdFilter==='all'?POSTS:POSTS.filter(function(p){ return p.board===bdFilter; }));
+  var html=list.map(function(p){
+    return '<div class="post-card">'
+      +'<span class="post-board '+p.board+'">'+(boardLbl[p.board]||p.board)+'</span>'
+      +'<div class="post-tit">'+p.title+'</div>'
+      +'<div class="post-prev">'+p.preview+'</div>'
+      +'<div class="post-foot"><span>'+p.nick+'</span><span>·</span><span>조회 '+p.views+'</span><span>·</span><span>❤️ '+p.likes+'</span><span>·</span><span>'+p.time+'</span></div>'
+      +'</div>';
+  }).join('')||'<div class="empty"><div class="empty-icon">💬</div><div class="empty-txt">게시글이 없습니다</div></div>';
+  var mob=document.getElementById('bd-list-mob');
+  var desk=document.getElementById('bd-list-desk');
+  if(mob) mob.innerHTML=html;
+  if(desk) desk.innerHTML=html;
+}
+window.setBdFilter=function(btn){
+  bdFilter=btn.dataset.bf;
+  document.querySelectorAll('[data-bf]').forEach(function(b){ b.classList.toggle('on',b.dataset.bf===bdFilter); });
+  renderPosts();
+};
+
+/* ────────────────────────────────────────
+   22. 내정보
+──────────────────────────────────────── */
+function renderMyTab(){
+  var saves=savedIds.map(function(id){ return PLACES.find(function(p){ return p.id===id; }); }).filter(Boolean);
+  var list=document.getElementById('my-saves-list');
+  if(!list) return;
+  list.innerHTML=saves.length?saves.map(function(p){
+    return '<div style="display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:.5px solid var(--border);cursor:pointer;" onclick="switchTab(\'map\');setTimeout(()=>openPlace(\''+p.id+'\'),300);">'
+      +catEmoji(p.category)+'<span style="font-size:13px;font-weight:600;">'+p.name+'</span>'
+      +'<span style="font-size:10px;color:var(--text2);margin-left:auto;">'+catLabel(p.category)+'</span></div>';
+  }).join(''):'<div style="font-size:13px;color:var(--text2);text-align:center;padding:12px;">저장한 장소가 없습니다</div>';
+  updateStats();
+}
+
+/* ────────────────────────────────────────
+   23. 위치 이동
+──────────────────────────────────────── */
+window.goMyLoc=function(){
+  if(!navigator.geolocation){ toast('위치 정보를 사용할 수 없습니다'); return; }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    try{
+      map2d.getView().setCenter(ol.proj.fromLonLat([pos.coords.longitude,pos.coords.latitude]));
+      map2d.getView().setZoom(17);
+      toast('현재 위치로 이동했습니다');
+    }catch(e){}
+  },function(){ toast('위치 권한이 필요합니다'); });
+};
+
+/* ────────────────────────────────────────
+   24. 모달
+──────────────────────────────────────── */
+var modalType='', modalData={};
+function closeModal(){ document.getElementById('modal-wrap').classList.remove('show'); modalType=''; }
+
+window.openAddModal=function(){
+  modalType='add'; modalData={step:1,category:'',name:'',lat:37.3892,lng:127.2456};
+  document.getElementById('modal-tit').textContent='📍 장소 제보';
+  document.getElementById('modal-ok').textContent='다음 →';
+  renderAddStep(1);
+  document.getElementById('modal-wrap').classList.add('show');
+};
+
+function renderAddStep(step){
+  var steps=['위치·장소명','기본 정보','가격 정보','후기'];
+  var body=document.getElementById('modal-body');
+  body.innerHTML='<div class="steps">'
+    +steps.map(function(_,i){ return '<div class="step-dot'+(i+1===step?' on':'')+'"</div>'; }).join('')
+    +'<span class="step-lbl">Step '+step+'/4 — '+steps[step-1]+'</span>'
+    +'</div>';
+  if(step===1){
+    body.innerHTML+='<div class="fg"><label class="fl">장소명 (필수)</label>'
+      +'<input class="fi" id="add-name" placeholder="예: OO영어학원, OO카페" value="'+(modalData.name||'')+'"/></div>'
+      +'<div class="fg"><label class="fl">카테고리</label>'
+      +'<div class="cat-grid">'
+      +[['academy','🎓 학원'],['study','✏️ 공부방'],['food','🍚 식당'],['cafe','☕ 카페'],['reading_room','📖 독서실']]
+        .map(function(v){ return '<button class="cpick'+(modalData.category===v[0]?' sel':'')+'" data-v="'+v[0]+'" onclick="pickCat(this)">'+v[1]+'</button>'; }).join('')
+      +'</div></div>'
+      +'<div style="font-size:11px;color:var(--text2);padding:8px;background:var(--surface);border-radius:6px;">'
+      +'📍 태전지구 중심 좌표 자동 설정<br>'
+      +'<button onclick="useMyLoc()" style="margin-top:4px;font-size:11px;color:var(--em);font-weight:700;background:none;border:none;cursor:pointer;">내 위치 사용 →</button>'
+      +'</div>';
+  } else if(step===2){
+    var edu=isEdu(modalData.category);
+    if(edu){
+      var rOpts=Object.entries(RATES).map(function(e){ return '<option value="'+e[0]+'">'+e[1].label+'</option>'; }).join('');
+      body.innerHTML+='<div class="fg"><label class="fl">학원등록번호</label><input class="fi" id="add-regno" placeholder="경기광주하남-XXXX-XXXX"/></div>'
+        +'<div class="fg"><label class="fl">교습 유형 <span class="law-tag">조정기준</span></label><select class="fs" id="add-rk">'+rOpts+'</select></div>'
+        +'<div class="fg"><label class="fl">교습시간(분)</label><select class="fs" id="add-min"><option>30</option><option>40</option><option>50</option><option selected>60</option><option>80</option><option>90</option><option>120</option></select></div>'
+        +'<div class="fg"><label class="fl">주당 횟수</label><select class="fs" id="add-sess"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option></select></div>';
+    } else {
+      body.innerHTML+='<div class="fg"><label class="fl">업종</label><select class="fs" id="add-btype"><option>일반음식점</option><option>휴게음식점</option><option>제과점</option></select></div>'
+        +'<div class="fg"><label class="fl">대표 메뉴명</label><input class="fi" id="add-menu" placeholder="예: 김치찌개"/></div>'
+        +'<div class="fg"><label class="fl">가격 (원, VAT포함 최종가)</label><input class="fi" id="add-price" type="number" placeholder="7000"/></div>'
+        +'<div style="display:flex;align-items:center;gap:8px;"><label class="fl">💳 경유기 가맹</label><input type="checkbox" id="add-gyugi"/></div>';
+    }
+  } else if(step===3){
+    var edu=isEdu(modalData.category);
+    if(edu){
+      body.innerHTML+='<div class="fg"><label class="fl">실제 수강료 (원/월)</label><input class="fi" id="add-tuition" type="number" placeholder="300000"/></div>'
+        +'<div class="fg"><label class="fl">교재비 (없으면 0)</label><input class="fi" id="add-textbook" type="number" placeholder="0"/></div>'
+        +'<div class="fg"><label class="fl">차량비 (없으면 0)</label><input class="fi" id="add-shuttle" type="number" placeholder="0"/></div>'
+        +'<div class="fg"><label class="fl">영수증 사진 (선택)</label><input type="file" accept="image/*" id="add-receipt" style="font-size:12px;"/></div>'
+        +'<div class="info-box">※ 기타경비는 교육청 신고분만 합법 — 학원법 시행령 §16</div>';
+    } else {
+      body.innerHTML+='<div class="fg"><label class="fl">가격표 게시 여부 <span class="law-tag">식품위생법§57</span></label><select class="fs" id="add-priceshow"><option value="1">✅ 가격표 있음</option><option value="0">❌ 없음</option></select></div>'
+        +'<div class="fg"><label class="fl">VAT 포함 여부</label><select class="fs" id="add-vat"><option value="1">포함</option><option value="0">별도</option></select></div>'
+        +'<div class="fg"><label class="fl">아이 동반</label><select class="fs" id="add-kids"><option value="1">가능</option><option value="0">노키즈존</option></select></div>';
+    }
+  } else if(step===4){
+    body.innerHTML+='<div class="fg"><label class="fl">한줄 후기 (50자)</label><input class="fi" id="add-review" placeholder="예: 셔틀 정확, 선생님 친절해요" maxlength="50"/></div>'
+      +'<div class="info-box">✅ 제보해 주셔서 감사합니다!<br>검토 후 지도에 반영됩니다.<br>법적 근거: 소비자기본법 §4 (정보권)</div>';
+  }
+}
+
+window.pickCat=function(btn){
+  modalData.category=btn.dataset.v;
+  document.querySelectorAll('.cpick').forEach(function(b){ b.classList.toggle('sel',b.dataset.v===modalData.category); });
+};
+window.useMyLoc=function(){
+  navigator.geolocation?.getCurrentPosition(function(pos){ modalData.lat=pos.coords.latitude; modalData.lng=pos.coords.longitude; toast('현재 위치가 설정됐습니다'); });
+};
+
+window.submitModal=function(){
+  if(modalType==='add'){
+    if(modalData.step<4){
+      if(modalData.step===1){
+        var n=document.getElementById('add-name')?.value.trim();
+        if(!n){ toast('장소명을 입력해주세요'); return; }
+        if(!modalData.category){ toast('카테고리를 선택해주세요'); return; }
+        modalData.name=n;
+      }
+      modalData.step++;
+      document.getElementById('modal-ok').textContent=modalData.step<4?'다음 →':'등록하기';
+      renderAddStep(modalData.step);
+    } else {
+      var newP={
+        id:'p'+Date.now(), name:modalData.name, category:modalData.category,
+        lat:modalData.lat, lng:modalData.lng,
+        cpUp:0, cpDown:0, saves:0, comments:[],
+        actualFee:{}, votes:{tu:0,td:0,au:0,ad:0,vu:0,vd:0}, menu:[]
+      };
+      var rev=document.getElementById('add-review')?.value.trim();
+      if(rev) newP.comments=[{nick:TG_NICK,text:rev,time:'방금 전'}];
+      if(isEdu(modalData.category)){
+        newP.rateKey=document.getElementById('add-rk')?.value;
+        newP.feeMin=parseInt(document.getElementById('add-min')?.value||60);
+        newP.feeSess=parseInt(document.getElementById('add-sess')?.value||5);
+        newP.officialFee=legalFee(newP.rateKey,newP.feeMin,newP.feeSess);
+      }
+      PLACES.push(newP);
+      closeModal(); loadMarkers();
+      stats.rpts++; updateStats();
+      toast('\''+newP.name+'\' 제보 감사합니다! '+TG_NICK+' 님');
+    }
+  } else if(modalType==='hd'){
+    var tit=document.getElementById('hd-tit')?.value.trim();
+    var cat=document.getElementById('hd-cat')?.value;
+    var desc=document.getElementById('hd-desc')?.value.trim();
+    var exp=document.getElementById('hd-exp')?.value;
+    if(!tit||!cat){ toast('카테고리와 제목을 입력하세요'); return; }
+    HOTDEALS.unshift({id:'h'+Date.now(),category:cat,title:tit,desc,expires:exp,likes:0,nick:TG_NICK,time:'방금 전'});
+    closeModal(); renderHotdeals();
+    toast('🔥 핫딜 제보 완료!');
+  } else if(modalType==='post'){
+    var tit=document.getElementById('pt-tit')?.value.trim();
+    var bd=document.getElementById('pt-board')?.value;
+    var cont=document.getElementById('pt-cont')?.value.trim();
+    if(!tit||!cont){ toast('제목과 내용을 입력하세요'); return; }
+    POSTS.unshift({id:'q'+Date.now(),board:bd,title:tit,preview:cont,nick:TG_NICK,likes:0,views:1,time:'방금 전'});
+    closeModal(); renderPosts();
+    stats.posts++; updateStats();
+    toast('게시글이 등록되었습니다!');
+  } else if(modalType==='feecalc'){
+    closeModal();
+  }
+};
+
+window.openHdModal=function(){
+  modalType='hd';
+  document.getElementById('modal-tit').textContent='🔥 핫딜 제보';
+  document.getElementById('modal-ok').textContent='제보하기';
+  document.getElementById('modal-body').innerHTML=
+    '<div class="fg"><label class="fl">카테고리</label><select class="fs" id="hd-cat"><option value="academy">🎓 학원</option><option value="food">🍚 식당</option><option value="cafe">☕ 카페</option><option value="market">🛒 마트</option><option value="other">📢 기타</option></select></div>'
+    +'<div class="fg"><label class="fl">제목 (30자)</label><input class="fi" id="hd-tit" placeholder="예: 아이스 아메리카노 1+1" maxlength="30"/></div>'
+    +'<div class="fg"><label class="fl">상세 내용 (100자)</label><input class="fi" id="hd-desc" placeholder="예: 평일 오후 2~5시, 경유기 결제 시" maxlength="100"/></div>'
+    +'<div class="fg"><label class="fl">유효기간</label><select class="fs" id="hd-exp"><option value="today">오늘만</option><option value="thisweek">이번주</option><option value="thismonth">이번달</option></select></div>';
+  document.getElementById('modal-wrap').classList.add('show');
+};
+
+window.openPostModal=function(){
+  modalType='post';
+  document.getElementById('modal-tit').textContent='✏️ 글쓰기';
+  document.getElementById('modal-ok').textContent='등록하기';
+  document.getElementById('modal-body').innerHTML=
+    '<div class="fg"><label class="fl">게시판</label><select class="fs" id="pt-board"><option value="academy">🎓 학원정보</option><option value="food">🍽 맛집추천</option><option value="community">💬 동네소식</option><option value="market">🛒 중고장터</option></select></div>'
+    +'<div class="fg"><label class="fl">제목 (50자)</label><input class="fi" id="pt-tit" placeholder="제목을 입력하세요" maxlength="50"/></div>'
+    +'<div class="fg"><label class="fl">내용 (500자)</label><textarea class="fi" id="pt-cont" rows="5" placeholder="내용을 입력하세요" maxlength="500" style="resize:none;"></textarea></div>';
+  document.getElementById('modal-wrap').classList.add('show');
+};
+
+window.openFeeModal=function(){
+  modalType='feecalc';
+  document.getElementById('modal-tit').textContent='📊 교습비 계산기';
+  document.getElementById('modal-ok').textContent='닫기';
+  var rOpts=Object.entries(RATES).filter(function(e){ return !e[1].isFlat; })
+    .map(function(e){ return '<option value="'+e[0]+'">'+e[1].label+'</option>'; }).join('');
+  document.getElementById('modal-body').innerHTML=
+    '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;">경기도광주하남교육지원청 교습비 조정기준 (2025.2.1.) <span class="law-tag">학원법 §15③</span></div>'
+    +'<div class="fg"><label class="fl">교습 유형</label><select class="fs" id="mfc-rate" onchange="updateFeeModal()">'+rOpts+'</select></div>'
+    +'<div class="fg"><label class="fl">교습시간(분)</label><select class="fs" id="mfc-min" onchange="updateFeeModal()"><option>30</option><option>40</option><option>50</option><option selected>60</option><option>80</option><option>90</option><option>120</option></select></div>'
+    +'<div class="fg"><label class="fl">주당 횟수</label><select class="fs" id="mfc-sess" onchange="updateFeeModal()"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option></select></div>'
+    +'<div style="background:var(--em-l);border-radius:8px;padding:12px 14px;">'
+    +'<div style="font-size:12px;color:var(--em-d);margin-bottom:5px;">월 법정 최대 교습비</div>'
+    +'<div style="font-size:26px;font-weight:700;color:var(--bl-d);" id="mfc-result">계산 중...</div>'
+    +'<div style="font-size:10px;color:var(--em-d);margin-top:4px;" id="mfc-formula"></div>'
+    +'</div>'
+    +'<div style="font-size:11px;color:var(--text2);line-height:1.8;padding:8px;background:var(--surface);border-radius:6px;">'
+    +'⚖ 법적 근거: 학원법 §15③⑥ / 경기도 학원 조례 시행규칙 §8의2<br>'
+    +'월 수업주수: 4.3주 기준 (경기도교육청 고시)<br>'
+    +'관할: 경기도광주하남교육지원청 031-760-4500'
+    +'</div>';
+  document.getElementById('modal-wrap').classList.add('show');
+  updateFeeModal();
+};
+window.updateFeeModal=function(){
+  var rk=document.getElementById('mfc-rate')?.value;
+  var mn=parseInt(document.getElementById('mfc-min')?.value||60);
+  var ss=parseInt(document.getElementById('mfc-sess')?.value||5);
+  var r=RATES[rk]; if(!r) return;
+  var res=r.isFlat?r.flatMonth:Math.floor(r.rate*mn*ss*4.3);
+  var el=document.getElementById('mfc-result'), fl=document.getElementById('mfc-formula');
+  if(el) el.textContent=res.toLocaleString('ko-KR')+'원/월';
+  if(fl) fl.textContent=r.isFlat?'정액제 (1일: '+r.flatDay?.toLocaleString()+'원)':r.rate+'원/분 × '+mn+'분 × 주'+ss+'회 × 4.3주';
+};
+
+/* ────────────────────────────────────────
+   25. 검색
+──────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('search-inp').addEventListener('input',function(){
+    var q=this.value.trim().toLowerCase();
+    PLACES.forEach(function(p){ p._hidden=q&&!(p.name.toLowerCase().includes(q)); });
+    loadMarkers();
+    if(q){
+      var m=PLACES.filter(function(p){ return !p._hidden; });
+      if(m.length===1) openPlace(m[0].id);
+    }
+  });
+});
+
+/* ────────────────────────────────────────
+   26. 반응형 처리
+──────────────────────────────────────── */
+window.addEventListener('resize',function(){
+  if(map2d){ try{ map2d.updateSize(); }catch(e){} }
+  // 데스크톱으로 전환 시 지도 항상 표시
+  if(isDesktop()){
+    document.getElementById('map-panel').style.display='flex';
+    document.getElementById('mob-content').classList.remove('show');
+  }
+});
+
+/* ────────────────────────────────────────
+   27. 앱 시작
+──────────────────────────────────────── */
+window.addEventListener('load',function(){
+  initUser();
+
+  // officialFee 계산
+  PLACES.forEach(function(p){
+    if(p.rateKey) p.officialFee=legalFee(p.rateKey, p.feeMin, p.feeSess);
+  });
+
+  // VWorld SDK 로드 대기 후 지도 초기화
+  function tryInitMap(){
+    if(typeof vw!=='undefined' && vw.ol3 && typeof ol!=='undefined'){
+      initMap();
+      renderHotdeals(); renderRanking(); renderPosts();
+      // 로더 제거
+      setTimeout(function(){
+        var ld=document.getElementById('loader');
+        ld.style.opacity='0'; ld.style.transition='opacity .4s';
+        setTimeout(function(){
+          ld.style.display='none';
+          document.getElementById('app').style.display='flex';
+        },400);
+      },1200);
+    } else {
+      setTimeout(tryInitMap,300);
+    }
+  }
+  tryInitMap();
+});
+
+// 전역 toast 함수 (onclick 속성에서 사용)
+window.toast=toast;
+</script>
+</body>
+</html>
