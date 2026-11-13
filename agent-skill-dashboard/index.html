@@ -226,6 +226,8 @@
     .cmd-line::-webkit-scrollbar { height: 5px; }
     .cmd-line::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, .3); border-radius: 3px; }
     .install-row.is-prompt .cmd-line { color: #cfd5ff; white-space: normal; word-break: keep-all; overflow-wrap: break-word; }
+    /* 모달(좁은 폭)에서는 명령을 줄바꿈해 전체가 보이도록 */
+    .guide-block .cmd-line { white-space: normal; overflow-wrap: anywhere; overflow-x: hidden; font-size: 10.8px; }
     .install-foot { margin-top: 10px; }
 
     /* ============ Presets ============ */
