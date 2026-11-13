@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚡ AI Agent Skill Hub | Claude Code & Grok</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
+    body { font-family: 'Pretendard', -apple-system, sans-serif; }
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <span class="text-2xl">⚡</span>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-lg font-bold text-white tracking-tight">AI Skill Hub</h1>
+            <span id="runtime-badge" class="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">감지 중...</span>
+          </div>
+          <p class="text-xs text-slate-400">Claude Code · Grok Bot 웹 개발 스킬 자동 검색 및 설치 대시보드</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <button onclick="openConfigModal()" class="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center space-x-1.5 shadow-sm">
+          <span>⚙️</span>
+          <span>에이전트 설정(MCP) 확인</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <!-- Overview Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="glass-panel p-4 rounded-xl flex items-center justify-between">
+        <div>
+          <div class="text-xs text-slate-400 font-medium">등록된 총 스킬 플러그인</div>
+          <div class="text-2xl font-bold text-white mt-1" id="stat-total">0</div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-lg">📦</div>
+      </div>
+      <div class="glass-panel p-4 rounded-xl flex items-center justify-between border-emerald-500/20">
+        <div>
+          <div class="text-xs text-emerald-400 font-medium">현재 활성화(설치)된 스킬</div>
+          <div class="text-2xl font-bold text-emerald-300 mt-1" id="stat-installed">0</div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-lg text-emerald-400">✅</div>
+      </div>
+      <div class="glass-panel p-4 rounded-xl flex items-center justify-between">
+        <div>
+          <div class="text-xs text-slate-400 font-medium">호환 에이전트 환경</div>
+          <div class="text-sm font-semibold text-slate-200 mt-2">Claude Code, Grok, Cursor</div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-lg">🤖</div>
+      </div>
+    </div>
+
+    <!-- Smart Stack Recommender Banner -->
+    <div class="glass-panel p-5 rounded-2xl border-indigo-500/30 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-sm font-bold text-indigo-300 uppercase tracking-wider">🎯 스마트 스택 추천 엔진</span>
+            <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 rounded">Auto-Match</span>
+          </div>
+          <p class="text-xs text-slate-300 mt-1">현재 개발 중인 웹 기술 스택을 선택하시면 가장 필요한 스킬 플러그인을 자동으로 추천·정렬합니다.</p>
+        </div>
+        <div class="flex flex-wrap gap-2" id="stack-buttons">
+          <button onclick="setStack('all')" class="stack-btn px-3 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 active-stack" data-stack="all">전체 스택</button>
+          <button onclick="setStack('nextjs,tailwind')" class="stack-btn px-3 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-700" data-stack="nextjs,tailwind">Next.js + Tailwind</button>
+          <button onclick="setStack('sqlite,drizzle')" class="stack-btn px-3 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-700" data-stack="sqlite,drizzle">SQLite + Drizzle</button>
+          <button onclick="setStack('rust,axum')" class="stack-btn px-3 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-700" data-stack="rust,axum">Rust Axum</button>
+          <button onclick="setStack('testing,security')" class="stack-btn px-3 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-700" data-stack="testing,security">테스팅 & 보안</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <div class="flex flex-col sm:flex-row gap-3">
+      <div class="relative flex-1">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">🔍</span>
+        <input type="text" id="search-input" oninput="debounceSearch()" placeholder="스킬 이름, 기능, 태그 검색 (예: nextjs, e2e, sqlite, tailwind...)" class="w-full pl-9 pr-4 py-2 text-sm bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:border-indigo-500 text-slate-100 placeholder-slate-500">
+      </div>
+      <div class="flex gap-2">
+        <select id="agent-filter" onchange="loadSkills()" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500">
+          <option value="all">전체 에이전트</option>
+          <option value="Claude Code">Claude Code</option>
+          <option value="Grok Bot">Grok Bot</option>
+          <option value="Cursor">Cursor</option>
+        </select>
+        <select id="category-filter" onchange="loadSkills()" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500">
+          <option value="all">전체 카테고리</option>
+          <option value="frontend">프론트엔드</option>
+          <option value="backend">백엔드</option>
+          <option value="database">데이터베이스</option>
+          <option value="testing">테스팅/품질</option>
+          <option value="devops">DevOps/배포</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Skills Grid -->
+    <div id="skills-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <!-- Dynamic render -->
+    </div>
+
+  </main>
+
+  <!-- Modal: MCP Agent Config -->
+  <div id="config-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-panel bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">⚙️</span>
+          <h2 class="font-bold text-white text-base">에이전트 연동 설정 (Config Generator)</h2>
+        </div>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+      <div class="p-4 space-y-4 overflow-y-auto">
+        <div class="flex space-x-2 border-b border-slate-800 pb-2">
+          <button id="tab-claude" onclick="switchConfigTab('claude')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white">Claude Code (~/.claude/mcp.json)</button>
+          <button id="tab-grok" onclick="switchConfigTab('grok')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-slate-400 hover:text-white">Grok Bot (grok_skills.json)</button>
+        </div>
+        <div class="text-xs text-slate-400" id="config-guide">
+          아래 설정 파일은 현재 대시보드에서 <strong>설치(활성화)</strong>된 스킬들을 자동으로 포함하고 있습니다.
+        </div>
+        <div class="relative">
+          <pre id="config-code" class="bg-slate-950 p-4 rounded-xl text-xs font-mono text-emerald-400 border border-slate-800 overflow-x-auto max-h-72">로딩 중...</pre>
+          <button onclick="copyConfig()" class="absolute top-2.5 right-2.5 px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center space-x-1">
+            <span>📋 복사</span>
+          </button>
+        </div>
+      </div>
+      <div class="p-3 border-t border-slate-800 bg-slate-950/50 flex justify-end">
+        <button onclick="closeConfigModal()" class="px-4 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-white rounded-lg">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_SKILLS = [
+      {
+        id: "nextjs-app-router-expert",
+        name: "Next.js App Router Expert",
+        category: "frontend",
+        description: "Next.js 15 App Router, Server Actions, SSR/SSG 캐싱 전략 및 라우트 핸들러 자동 최적화 MCP 스킬",
+        agents: ["Claude Code", "Grok Bot", "Cursor"],
+        stacks: ["nextjs", "react", "typescript"],
+        mcp_command: "npx",
+        mcp_args: ["-y", "@modelcontextprotocol/server-nextjs"],
+        recommended_for: "Next.js 풀스택 웹앱 개발 시"
+      },
+      {
+        id: "tailwind-component-craft",
+        name: "Tailwind UI Component Craft",
+        category: "frontend",
+        description: "Tailwind CSS v4 기반 반응형 웹 컴포넌트 자동 생성, 디자인 시스템 토큰 및 접근성(a11y) 검증",
+        agents: ["Claude Code", "Grok Bot"],
+        stacks: ["tailwind", "react", "nextjs", "vue"],
+        mcp_command: "npx",
+        mcp_args: ["-y", "mcp-tailwind-craft"],
+        recommended_for: "모던 웹 UI/UX 빠른 프로토타이핑"
+      },
+      {
+        id: "sqlite-drizzle-agent",
+        name: "SQLite & Drizzle Schema Architect",
+        category: "database",
+        description: "경량 SQLite DB 스키마 설계, Drizzle ORM 마이그레이션 생성 및 쿼리 최적화 에이전트",
+        agents: ["Claude Code", "Grok Bot", "Cursor"],
+        stacks: ["sqlite", "drizzle", "nextjs", "typescript"],
+        mcp_command: "npx",
+        mcp_args: ["-y", "mcp-sqlite-drizzle", "--db", "./dev.sqlite"],
+        recommended_for: "로컬 및 서버리스 데이터베이스 구축"
+      },
+      {
+        id: "playwright-e2e-runner",
+        name: "Playwright E2E Web Tester",
+        category: "testing",
+        description: "브라우저 화면 조작, E2E 시나리오 테스트 자동 생성, 스크린샷 비교 및 콘솔 에러 실시간 감지",
+        agents: ["Claude Code", "Grok Bot"],
+        stacks: ["react", "nextjs", "vue", "testing"],
+        mcp_command: "npx",
+        mcp_args: ["-y", "@playwright/mcp-server"],
+        recommended_for: "웹 기능 회귀 테스트 및 브라우저 디버깅"
+      },
+      {
+        id: "openapi-mock-inspector",
+        name: "OpenAPI Mock & Contract Validator",
+        category: "backend",
+        description: "Swagger/OpenAPI 3.1 스펙 기반 목(Mock) API 실시간 서빙 및 프론트-백엔드 인터페이스 일치성 검증",
+        agents: ["Claude Code", "Grok Bot"],
+        stacks: ["api", "backend", "typescript", "rust"],
+        mcp_command: "npx",
+        mcp_args: ["-y", "mcp-openapi-mock"],
+        recommended_for: "백엔드 API 완성 전 프론트엔드 선행 개발"
+      },
+      {
+        id: "rust-axum-scaffolder",
+        name: "Rust Axum API Engineer",
+        category: "backend",
+        description: "고성능 Rust Axum 웹 프레임워크 라우터, 상태 관리(State), 미들웨어 및 비동기 Tokio 핸들러 생성",
+        agents: ["Claude Code", "Cursor"],
+        stacks: ["rust", "axum", "backend"],
+        mcp_command: "cargo",
+        mcp_args: ["run", "--bin", "mcp-rust-axum"],
+        recommended_for: "초고속 Rust 백엔드 서비스 개발"
+      },
+      {
+        id: "docker-compose-scaffolder",
+        name: "Docker Web Stack Orchestrator",
+        category: "devops",
+        description: "웹앱 및 연동 서비스(Redis, DB, Nginx)의 최적화된 Dockerfile과 docker-compose.yml 자동 생성",
+        agents: ["Claude Code", "Grok Bot"],
+        stacks: ["docker", "devops", "backend"],
+        mcp_command: "npx",
+        mcp_args: ["-y", "mcp-docker-compose"],
+        recommended_for: "컨테이너화 및 로컬 개발 환경 통일"
+      },
+      {
+        id: "grok-security-sentinel",
+        name: "Web Security & XSS Sentinel",
+        category: "testing",
+        description: "웹앱 소스코드의 OWASP Top 10 취약점(XSS, CSRF, SQLi), 환경변수 누출 실시간 정적 분석",
+        agents: ["Grok Bot", "Claude Code"],
+        stacks: ["security", "react", "nextjs", "rust"],
+        mcp_command: "npx",
+        mcp_args: ["-y", "mcp-security-sentinel"],
+        recommended_for: "배포 전 보안 취약점 사전 차단"
+      }
+    ];
+
+    let currentStack = 'all';
+    let currentConfigAgent = 'claude';
+    let searchTimeout = null;
+    let isServerMode = false;
+
+    function getLocalInstalled() {
+      try {
+        const saved = localStorage.getItem('hub_installed_skills');
+        if (saved) return JSON.parse(saved);
+      } catch(e) {}
+      return ["nextjs-app-router-expert", "tailwind-component-craft"];
+    }
+
+    function saveLocalInstalled(ids) {
+      try {
+        localStorage.setItem('hub_installed_skills', JSON.stringify(ids));
+      } catch(e) {}
+    }
+
+    function setBadge(serverMode) {
+      isServerMode = serverMode;
+      const b = document.getElementById('runtime-badge');
+      if (serverMode) {
+        b.className = 'px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        b.innerText = '⚡ Rust Server 연동';
+      } else {
+        b.className = 'px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
+        b.innerText = '🌐 웹 독립 실행 모드';
+      }
+    }
+
+    async function loadSkills() {
+      const q = document.getElementById('search-input').value.trim().toLowerCase();
+      const category = document.getElementById('category-filter').value;
+      const agent = document.getElementById('agent-filter').value;
+
+      const url = `/api/skills?q=${encodeURIComponent(q)}&category=${category}&agent=${agent}&stack=${currentStack}`;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!res.ok) throw new Error('Non-200');
+        const skills = await res.json();
+        renderSkills(skills);
+        updateStats(skills);
+        setBadge(true);
+      } catch (e) {
+        // Fallback to client-side in-browser engine
+        loadSkillsClientSide(q, category, agent);
+        setBadge(false);
+      }
+    }
+
+    function loadSkillsClientSide(q, category, agent) {
+      const installedList = getLocalInstalled();
+      let stackKeys = [];
+      if (currentStack !== 'all') {
+        stackKeys = currentStack.split(',').map(s => s.trim().toLowerCase());
+      }
+
+      let filtered = DEFAULT_SKILLS.map(skill => {
+        const installed = installedList.includes(skill.id);
+        let score = 0;
+        if (stackKeys.length > 0) {
+          for (const k of stackKeys) {
+            if (skill.stacks.some(st => st.toLowerCase().includes(k))) {
+              score += 10;
+            }
+          }
+        }
+        return { ...skill, installed, score };
+      });
+
+      if (category !== 'all') {
+        filtered = filtered.filter(s => s.category.toLowerCase() === category.toLowerCase());
+      }
+      if (agent !== 'all') {
+        filtered = filtered.filter(s => s.agents.some(a => a.toLowerCase() === agent.toLowerCase()));
+      }
+      if (q) {
+        filtered = filtered.filter(s => 
+          s.name.toLowerCase().includes(q) || 
+          s.description.toLowerCase().includes(q) ||
+          s.stacks.some(st => st.toLowerCase().includes(q))
+        );
+      }
+
+      filtered.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.name.localeCompare(b.name);
+      });
+
+      renderSkills(filtered);
+      updateStats(filtered);
+    }
+
+    function updateStats(skills) {
+      document.getElementById('stat-total').innerText = skills.length;
+      const installed = skills.filter(s => s.installed).length;
+      document.getElementById('stat-installed').innerText = installed;
+    }
+
+    function renderSkills(skills) {
+      const container = document.getElementById('skills-container');
+      if (skills.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-16 text-center text-slate-500">
+            <div class="text-3xl mb-2">🔍</div>
+            <p class="text-sm">조건에 맞는 스킬 플러그인을 찾지 못했습니다.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = skills.map(skill => {
+        const isRec = skill.score > 0;
+        const agentsBadges = skill.agents.map(a => `<span class="px-1.5 py-0.5 text-[10px] rounded bg-slate-800 text-slate-300 border border-slate-700 font-mono">${a}</span>`).join(' ');
+
+        return `
+          <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between border transition duration-200 ${isRec ? 'border-indigo-500/50 shadow-lg shadow-indigo-950/30' : 'border-slate-800 hover:border-slate-700'}">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  ${isRec ? '<span class="inline-block mb-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">✨ 스택 맞춤 추천</span>' : ''}
+                  <h3 class="font-bold text-white text-base leading-snug">${skill.name}</h3>
+                </div>
+                <span class="px-2 py-0.5 text-[10px] uppercase font-semibold rounded bg-slate-800/80 text-slate-400 border border-slate-700">${skill.category}</span>
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed mt-1 mb-3">${skill.description}</p>
+              <div class="text-[11px] text-slate-400 bg-slate-900/60 p-2 rounded-lg border border-slate-800/60 mb-3">
+                <span class="text-slate-500 font-medium">추천 용도:</span> ${skill.recommended_for}
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800/80">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-1">
+                  ${agentsBadges}
+                </div>
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <div class="text-[10px] font-mono text-slate-500 truncate max-w-[160px] bg-slate-950 px-2 py-1 rounded border border-slate-800">
+                  ${skill.mcp_command} ${skill.mcp_args.join(' ')}
+                </div>
+                <button onclick="toggleInstall('${skill.id}', ${skill.installed})" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
+                  skill.installed 
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/40' 
+                    : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm'
+                }">
+                  ${skill.installed ? '✓ 설치됨 (해제)' : '+ 1클릭 설치'}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function toggleInstall(id, currentlyInstalled) {
+      if (isServerMode) {
+        const endpoint = currentlyInstalled ? '/api/uninstall' : '/api/install';
+        try {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+          });
+          if (res.ok) {
+            loadSkills();
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // Client-side fallback with localStorage
+      let ids = getLocalInstalled();
+      if (currentlyInstalled) {
+        ids = ids.filter(x => x !== id);
+      } else {
+        if (!ids.includes(id)) ids.push(id);
+      }
+      saveLocalInstalled(ids);
+      loadSkills();
+    }
+
+    function setStack(stack) {
+      currentStack = stack;
+      document.querySelectorAll('.stack-btn').forEach(btn => {
+        if (btn.dataset.stack === stack) {
+          btn.classList.add('border-indigo-500', 'bg-indigo-600/30', 'text-white');
+          btn.classList.remove('bg-slate-800/60', 'text-slate-300');
+        } else {
+          btn.classList.remove('border-indigo-500', 'bg-indigo-600/30', 'text-white');
+          btn.classList.add('bg-slate-800/60', 'text-slate-300');
+        }
+      });
+      loadSkills();
+    }
+
+    function debounceSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(loadSkills, 200);
+    }
+
+    async function openConfigModal() {
+      document.getElementById('config-modal').classList.remove('hidden');
+      loadConfigCode();
+    }
+
+    function closeConfigModal() {
+      document.getElementById('config-modal').classList.add('hidden');
+    }
+
+    function switchConfigTab(agent) {
+      currentConfigAgent = agent;
+      if (agent === 'claude') {
+        document.getElementById('tab-claude').className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white';
+        document.getElementById('tab-grok').className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-slate-400 hover:text-white';
+      } else {
+        document.getElementById('tab-grok').className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white';
+        document.getElementById('tab-claude').className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-slate-400 hover:text-white';
+      }
+      loadConfigCode();
+    }
+
+    async function loadConfigCode() {
+      const codeElem = document.getElementById('config-code');
+      if (isServerMode) {
+        try {
+          const res = await fetch(`/api/config?agent=${currentConfigAgent}`);
+          if (res.ok) {
+            const text = await res.text();
+            codeElem.innerText = text;
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // Client-side fallback config generator
+      const installedIds = getLocalInstalled();
+      const installedSkills = DEFAULT_SKILLS.filter(s => installedIds.includes(s.id));
+
+      if (currentConfigAgent === 'claude') {
+        const mcpServers = {};
+        for (const s of installedSkills) {
+          mcpServers[s.id] = {
+            command: s.mcp_command,
+            args: s.mcp_args
+          };
+        }
+        const json = { mcpServers };
+        codeElem.innerText = JSON.stringify(json, null, 2);
+      } else {
+        const skills = installedSkills.map(s => ({
+          id: s.id,
+          name: s.name,
+          command: s.mcp_command,
+          args: s.mcp_args,
+          enabled: true
+        }));
+        const json = {
+          version: "1.0",
+          agent: "grok-bot",
+          skills
+        };
+        codeElem.innerText = JSON.stringify(json, null, 2);
+      }
+    }
+
+    function copyConfig() {
+      const code = document.getElementById('config-code').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('설정 JSON이 클립보드에 복사되었습니다!');
+      });
+    }
+
+    // 초기 실행
+    loadSkills();
+  </script>
+</body>
+</html>
