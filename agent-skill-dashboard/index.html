@@ -33,6 +33,7 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; }
+    [hidden] { display: none !important; }
 
     html {
       /* 한글 단어 중간 끊김 방지 */
@@ -351,7 +352,9 @@
     .card-foot { margin-top: auto; padding-top: 13px; }
     .cmd {
       font-family: var(--mono); font-size: 11px; letter-spacing: 0;
-      color: #9fe4c4; background: rgba(5, 8, 15, .9);
+      color: #9fe4c4; background-color: rgba(5, 8, 15, .9);
+      background-image: linear-gradient(to left, rgba(5, 8, 15, .96) 0, rgba(5, 8, 15, 0) 26px);
+      background-position: right center; background-repeat: no-repeat; background-size: 26px 100%;
       border: 1px solid rgba(148, 163, 184, .14); border-radius: 9px;
       padding: 8px 10px; overflow-x: auto; white-space: nowrap;
       scrollbar-width: thin; -webkit-overflow-scrolling: touch;
@@ -512,7 +515,7 @@
         </div>
       </div>
       <div class="topbar-actions">
-        <button type="button" class="btn btn-primary" onclick="openModal('config')">
+        <button type="button" class="btn btn-primary" onclick="openModal()">
           <span aria-hidden="true">⚙️</span><span class="label">설정·연동 가이드</span>
         </button>
       </div>
@@ -1175,9 +1178,7 @@
     /* ---------------- 모달 ---------------- */
     function openModal(tab) {
       document.getElementById('config-modal').classList.add('is-open');
-      if (tab) switchTab(tab);
-      else loadConfig();
-      loadConfig();
+      switchTab(tab || 'json');
     }
 
     function closeModal() {
