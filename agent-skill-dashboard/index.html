@@ -3,153 +3,839 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚡ AI Agent Skill Hub | Claude Code & Grok</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="AI 에이전트(Claude Code · Grok Bot · Cursor)용 MCP 스킬 카탈로그. 코딩 생산성과 토큰 절감에 특화된 스킬을 골라 .mcp.json과 claude mcp add 명령으로 바로 연동합니다.">
+  <meta name="color-scheme" content="dark">
+  <title>⚡ AI Agent Skill Hub | 토큰 절감 &amp; 코딩 스킬</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
-    body { font-family: 'Pretendard', -apple-system, sans-serif; }
-    .glass-panel {
-      background: rgba(30, 41, 59, 0.7);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+    /* ============ Design tokens ============ */
+    :root {
+      --bg: #070a12;
+      --bg-soft: #0b1020;
+      --surface: rgba(21, 27, 44, .82);
+      --surface-2: rgba(12, 17, 29, .9);
+      --line: rgba(148, 163, 184, .14);
+      --line-strong: rgba(148, 163, 184, .26);
+      --text: #e9edf7;
+      --text-dim: #a7b2c9;
+      --text-mute: #7d8aa3;
+      --violet: #8b97ff;
+      --violet-deep: #5b63e8;
+      --emerald: #43d9a3;
+      --gold: #f4c76a;
+      --gold-deep: #b8862f;
+      --radius: 18px;
+      --shadow: 0 18px 44px -24px rgba(0, 0, 0, .9);
+      --font: 'Pretendard', 'Pretendard Variable', -apple-system, BlinkMacSystemFont,
+              'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Segoe UI', Roboto, sans-serif;
+      --mono: 'SFMono-Regular', ui-monospace, 'JetBrains Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html {
+      /* 한글 단어 중간 끊김 방지 */
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.65;
+      letter-spacing: -0.011em;
+      color: var(--text);
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(1100px 620px at 12% -12%, rgba(78, 92, 190, .30) 0%, rgba(78, 92, 190, 0) 62%),
+        radial-gradient(900px 520px at 92% -6%, rgba(24, 122, 122, .24) 0%, rgba(24, 122, 122, 0) 58%),
+        radial-gradient(760px 480px at 50% 108%, rgba(120, 70, 180, .16) 0%, rgba(120, 70, 180, 0) 60%);
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1, h2, h3, h4, p, ul, ol, figure { margin: 0; }
+    button { font-family: inherit; letter-spacing: inherit; cursor: pointer; }
+    a { color: var(--violet); text-decoration: none; }
+    a:hover { text-decoration: underline; text-underline-offset: 3px; }
+    :focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; border-radius: 8px; }
+
+    .wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 32px); }
+
+    /* ============ Header ============ */
+    header.topbar {
+      position: sticky; top: 0; z-index: 40;
+      background: rgba(8, 11, 20, .76);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px) saturate(140%);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+    }
+    .topbar-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; padding-top: 12px; padding-bottom: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      width: 40px; height: 40px; flex: none;
+      display: grid; place-items: center;
+      border-radius: 13px;
+      font-size: 19px;
+      background: linear-gradient(145deg, #6d6cf6 0%, #3f4bd6 55%, #22b39a 100%);
+      box-shadow: 0 10px 22px -12px rgba(109, 108, 246, .9), inset 0 1px 0 rgba(255, 255, 255, .25);
+    }
+    .brand-text { min-width: 0; }
+    .brand-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .brand-title h1 {
+      font-size: 17px; font-weight: 700; letter-spacing: -.02em; color: #fff;
+      white-space: nowrap;
+    }
+    .brand-sub {
+      font-size: 12.5px; color: var(--text-mute); margin-top: 1px;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+
+    /* ============ Small pieces ============ */
+    .pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 999px;
+      font-size: 11px; font-weight: 600; line-height: 1.5;
+      border: 1px solid transparent; white-space: nowrap;
+    }
+    .pill-runtime { background: rgba(99, 102, 241, .16); color: #b9c0ff; border-color: rgba(99, 102, 241, .34); }
+    .pill-live { background: rgba(67, 217, 163, .14); color: #7df0c4; border-color: rgba(67, 217, 163, .34); }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 9px 14px; min-height: 38px;
+      border-radius: 11px; border: 1px solid var(--line-strong);
+      background: rgba(255, 255, 255, .04); color: var(--text);
+      font-size: 12.5px; font-weight: 600; line-height: 1.4;
+      transition: background .16s ease, border-color .16s ease, transform .16s ease, color .16s ease;
+      white-space: nowrap;
+    }
+    .btn:hover { background: rgba(255, 255, 255, .08); border-color: rgba(148, 163, 184, .4); }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary {
+      background: linear-gradient(180deg, #6a72f5, #4c53d8);
+      border-color: rgba(140, 148, 255, .55); color: #fff;
+      box-shadow: 0 10px 24px -14px rgba(94, 102, 240, .95);
+    }
+    .btn-primary:hover { background: linear-gradient(180deg, #7b82ff, #565de4); }
+    .btn-gold {
+      background: linear-gradient(180deg, rgba(244, 199, 106, .22), rgba(184, 134, 47, .16));
+      border-color: rgba(244, 199, 106, .45); color: #ffdb9a;
+    }
+    .btn-gold:hover { background: linear-gradient(180deg, rgba(244, 199, 106, .3), rgba(184, 134, 47, .22)); }
+    .btn-installed {
+      background: rgba(67, 217, 163, .16); border-color: rgba(67, 217, 163, .44); color: #86f0c8;
+    }
+    .btn-installed:hover { background: rgba(244, 112, 112, .16); border-color: rgba(244, 112, 112, .44); color: #ffb3b3; }
+    .btn-sm { padding: 7px 11px; min-height: 34px; font-size: 12px; border-radius: 10px; }
+
+    /* ============ Main layout ============ */
+    main { padding-top: clamp(20px, 3.4vw, 34px); padding-bottom: 56px; }
+    .stack-lg { display: grid; gap: clamp(16px, 2.2vw, 22px); }
+
+    /* ============ Hero ============ */
+    .hero { display: grid; gap: 18px; }
+    .hero h2 {
+      font-size: clamp(22px, 3.4vw, 31px); font-weight: 800; letter-spacing: -.03em;
+      line-height: 1.42; color: #fff;
+    }
+    .hero h2 em {
+      font-style: normal;
+      background: linear-gradient(92deg, #ffd88a 0%, #f4c76a 38%, #8de3c0 92%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero p { color: var(--text-dim); font-size: 14px; max-width: 68ch; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+    .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .stat {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 14px 16px; border-radius: 15px;
+      background: var(--surface); border: 1px solid var(--line);
+      box-shadow: var(--shadow); backdrop-filter: blur(10px);
+    }
+    .stat-label { font-size: 11.5px; color: var(--text-mute); font-weight: 600; }
+    .stat-value { font-size: 23px; font-weight: 800; letter-spacing: -.02em; color: #fff; line-height: 1.25; margin-top: 2px; }
+    .stat-value.sm { font-size: 14px; font-weight: 700; color: var(--text); margin-top: 5px; }
+    .stat-icon {
+      width: 38px; height: 38px; flex: none; display: grid; place-items: center;
+      border-radius: 11px; background: rgba(255, 255, 255, .05); border: 1px solid var(--line);
+      font-size: 17px;
+    }
+
+    /* ============ Token spotlight ============ */
+    .spotlight {
+      position: relative; overflow: hidden;
+      border-radius: 22px; padding: clamp(18px, 2.6vw, 26px);
+      background:
+        radial-gradient(620px 300px at 88% -30%, rgba(244, 199, 106, .18) 0%, rgba(244, 199, 106, 0) 70%),
+        linear-gradient(160deg, rgba(35, 30, 20, .95) 0%, rgba(16, 20, 32, .95) 58%, rgba(12, 17, 28, .95) 100%);
+      border: 1px solid rgba(244, 199, 106, .30);
+      box-shadow: 0 24px 60px -34px rgba(244, 199, 106, .55);
+    }
+    .spotlight::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .045), transparent 40%);
+      pointer-events: none;
+    }
+    .spotlight-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .spotlight-head h3 { font-size: 16.5px; font-weight: 800; color: #ffe6b8; letter-spacing: -.02em; }
+    .spotlight p { margin-top: 8px; font-size: 13px; color: #cfd6e6; max-width: 74ch; }
+    .spot-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .spot-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 11px; border-radius: 10px;
+      font-size: 12px; font-weight: 600; color: #f2e6cd;
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(244, 199, 106, .26);
+      transition: background .16s ease, border-color .16s ease;
+    }
+    .spot-chip:hover { background: rgba(244, 199, 106, .16); border-color: rgba(244, 199, 106, .5); }
+    .spot-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .foot-note { margin-top: 10px; font-size: 11.5px; color: var(--text-mute); }
+
+    /* ============ One-command install ============ */
+    .install-rows { display: grid; gap: 9px; }
+    .install-row {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 10px;
+      padding: 10px 12px; border-radius: 12px;
+      background: rgba(6, 10, 18, .75); border: 1px solid rgba(148, 163, 184, .13);
+    }
+    .install-row .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .install-row .os {
+      font-size: 11px; font-weight: 700; letter-spacing: .01em;
+      color: #cdd6e8; background: rgba(255, 255, 255, .06);
+      border: 1px solid var(--line); border-radius: 7px; padding: 2px 8px;
+    }
+    .install-row .what { font-size: 11.5px; color: var(--text-mute); }
+    .cmd-line {
+      font-family: var(--mono); font-size: 11.6px; letter-spacing: 0; color: #9fe4c4;
+      overflow-x: auto; white-space: nowrap; scrollbar-width: thin; padding: 2px 0;
+      direction: ltr; text-align: left;
+    }
+    .cmd-line::-webkit-scrollbar { height: 5px; }
+    .cmd-line::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, .3); border-radius: 3px; }
+    .install-row.is-prompt .cmd-line { color: #cfd5ff; white-space: normal; word-break: keep-all; overflow-wrap: break-word; }
+    .install-foot { margin-top: 10px; }
+
+    /* ============ Presets ============ */
+    .panel {
+      border-radius: var(--radius); padding: 16px 18px;
+      background: var(--surface); border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    .panel-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+    .panel-head h3 { font-size: 13.5px; font-weight: 700; color: #fff; }
+    .panel-head span { font-size: 11.5px; color: var(--text-mute); }
+
+    .stack-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .stack-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 13px; border-radius: 11px; min-height: 36px;
+      font-size: 12.5px; font-weight: 600;
+      color: #c3cbdc; background: rgba(255, 255, 255, .035);
+      border: 1px solid var(--line);
+      transition: background .16s ease, border-color .16s ease, color .16s ease;
+    }
+    .stack-btn:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+    .stack-btn.is-active {
+      color: #fff; border-color: rgba(139, 151, 255, .62);
+      background: linear-gradient(180deg, rgba(139, 151, 255, .28), rgba(91, 99, 232, .2));
+      box-shadow: 0 8px 22px -16px rgba(139, 151, 255, .95);
+    }
+    .stack-btn.is-token { color: #ffdda0; border-color: rgba(244, 199, 106, .38); background: rgba(244, 199, 106, .1); }
+    .stack-btn.is-token:hover { background: rgba(244, 199, 106, .18); color: #ffe9c4; }
+    .stack-btn.is-token.is-active {
+      color: #2a1d06; border-color: rgba(244, 199, 106, .9);
+      background: linear-gradient(180deg, #f8d78e, #e0ae4e);
+      box-shadow: 0 10px 26px -14px rgba(244, 199, 106, .9);
+    }
+
+    /* ============ Toolbar ============ */
+    .toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+    .search-box { position: relative; }
+    .search-box .icon {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      font-size: 13px; color: var(--text-mute); pointer-events: none;
+    }
+    input[type="search"], select {
+      width: 100%; height: 46px;
+      padding: 0 14px; border-radius: 13px;
+      font-family: inherit; font-size: 13.5px; color: var(--text);
+      background: rgba(10, 14, 24, .92);
+      border: 1px solid var(--line-strong);
+      transition: border-color .16s ease, box-shadow .16s ease;
+    }
+    input[type="search"] { padding-left: 38px; }
+    input[type="search"]::placeholder { color: #66738c; }
+    input[type="search"]:focus, select:focus {
+      outline: none; border-color: rgba(139, 151, 255, .7);
+      box-shadow: 0 0 0 3px rgba(139, 151, 255, .16);
+    }
+    select { appearance: none; cursor: pointer; padding-right: 34px;
+      background-image: linear-gradient(45deg, transparent 50%, #8b97b4 50%), linear-gradient(135deg, #8b97b4 50%, transparent 50%);
+      background-position: calc(100% - 17px) 20px, calc(100% - 12px) 20px;
+      background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+    }
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; }
+    .filters select { min-width: 148px; width: auto; }
+    .toolbar-meta {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 8px; margin-top: 4px; font-size: 12px; color: var(--text-mute);
+    }
+    .toolbar-meta b { color: #dfe6f5; font-weight: 700; }
+    .reset-link { color: var(--text-dim); font-size: 12px; background: none; border: 0; padding: 2px 0; text-decoration: underline; text-underline-offset: 3px; }
+    .reset-link:hover { color: #fff; }
+
+    /* ============ Cards ============ */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 16px; }
+    .card {
+      position: relative; display: flex; flex-direction: column;
+      padding: 18px; border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(23, 29, 46, .92) 0%, rgba(13, 18, 30, .94) 100%);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+      overflow: hidden;
+    }
+    .card:hover { transform: translateY(-2px); border-color: rgba(139, 151, 255, .42); box-shadow: 0 26px 50px -30px rgba(0, 0, 0, .95); }
+    .card.is-token { border-color: rgba(244, 199, 106, .26); }
+    .card.is-token::before {
+      content: ''; position: absolute; inset: 0 auto 0 0; width: 3px;
+      background: linear-gradient(180deg, #ffd88a, #c08b34);
+    }
+    .card.is-token:hover { border-color: rgba(244, 199, 106, .55); }
+    .card.is-rec { border-color: rgba(139, 151, 255, .5); }
+
+    .card-tags-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 9px; }
+    .cat-chip {
+      padding: 3px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 700;
+      letter-spacing: .01em; border: 1px solid var(--line-strong);
+      background: rgba(255, 255, 255, .05); color: #b9c4d8;
+    }
+    .cat-token { color: #2a1d06; background: linear-gradient(180deg, #f8d78e, #dfab48); border-color: transparent; }
+    .save-chip {
+      padding: 3px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 700;
+      background: rgba(67, 217, 163, .14); color: #7df0c4; border: 1px solid rgba(67, 217, 163, .34);
+    }
+    .rec-chip {
+      padding: 3px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 700;
+      background: rgba(139, 151, 255, .18); color: #c3caff; border: 1px solid rgba(139, 151, 255, .4);
+    }
+    .card-title {
+      font-size: 15.5px; font-weight: 700; line-height: 1.5; letter-spacing: -.02em;
+      color: #fff; margin-bottom: 7px;
+    }
+    .card-desc { font-size: 12.8px; line-height: 1.7; color: #b6c0d4; }
+    .card-use {
+      margin-top: 12px; padding: 9px 11px; border-radius: 10px;
+      font-size: 11.8px; line-height: 1.6; color: #c9d2e4;
+      background: rgba(8, 12, 22, .72); border: 1px solid rgba(148, 163, 184, .12);
+    }
+    .card-use b { color: var(--text-mute); font-weight: 600; margin-right: 4px; }
+    .card-stacks { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 11px; }
+    .tag {
+      font-family: var(--mono); font-size: 10.5px; letter-spacing: 0;
+      padding: 2px 7px; border-radius: 6px;
+      color: #9fb0cc; background: rgba(255, 255, 255, .045); border: 1px solid rgba(148, 163, 184, .14);
+    }
+    .card-foot { margin-top: auto; padding-top: 13px; }
+    .cmd {
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0;
+      color: #9fe4c4; background: rgba(5, 8, 15, .9);
+      border: 1px solid rgba(148, 163, 184, .14); border-radius: 9px;
+      padding: 8px 10px; overflow-x: auto; white-space: nowrap;
+      scrollbar-width: thin; -webkit-overflow-scrolling: touch;
+    }
+    .cmd::-webkit-scrollbar { height: 5px; }
+    .cmd::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, .3); border-radius: 3px; }
+    .card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 11px; }
+    .card-actions .btn { flex: 1 1 auto; }
+
+    .empty {
+      grid-column: 1 / -1; padding: 56px 20px; text-align: center;
+      border-radius: var(--radius); border: 1px dashed var(--line-strong);
+      color: var(--text-mute); font-size: 13px;
+    }
+    .empty .big { font-size: 30px; display: block; margin-bottom: 8px; }
+
+    /* ============ Modal ============ */
+    .modal {
+      position: fixed; inset: 0; z-index: 60;
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px; background: rgba(3, 5, 10, .74);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      opacity: 0; visibility: hidden; transition: opacity .18s ease, visibility .18s ease;
+    }
+    .modal.is-open { opacity: 1; visibility: visible; }
+    .modal-panel {
+      width: 100%; max-width: 720px; max-height: 90vh;
+      display: flex; flex-direction: column;
+      border-radius: 20px; overflow: hidden;
+      background: linear-gradient(180deg, #131a2b 0%, #0b1120 100%);
+      border: 1px solid var(--line-strong);
+      box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 1);
+      transform: translateY(8px) scale(.99); transition: transform .2s ease;
+    }
+    .modal.is-open .modal-panel { transform: none; }
+    .modal-head {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+      padding: 16px 18px; border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .02);
+    }
+    .modal-head h2 { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -.02em; }
+    .modal-head p { font-size: 11.8px; color: var(--text-mute); margin-top: 3px; }
+    .icon-btn {
+      flex: none; width: 34px; height: 34px; display: grid; place-items: center;
+      border-radius: 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, .04);
+      color: var(--text-dim); font-size: 17px; line-height: 1;
+    }
+    .icon-btn:hover { color: #fff; background: rgba(255, 255, 255, .1); }
+    .tabs {
+      display: flex; gap: 6px; padding: 12px 18px 0; overflow-x: auto;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      padding: 8px 12px; border-radius: 10px 10px 0 0; white-space: nowrap;
+      font-size: 12px; font-weight: 600; color: var(--text-mute);
+      background: transparent; border: 1px solid transparent; border-bottom: 0;
+    }
+    .tab:hover { color: #dfe6f5; }
+    .tab.is-active {
+      color: #fff; background: rgba(139, 151, 255, .14);
+      border-color: rgba(139, 151, 255, .32);
+    }
+    .modal-body { padding: 16px 18px 20px; overflow-y: auto; }
+    .modal-body .lead { font-size: 12.5px; color: var(--text-dim); margin-bottom: 12px; }
+    .code-shell { position: relative; }
+    .code-shell pre {
+      margin: 0; padding: 14px 14px 14px; border-radius: 12px;
+      font-family: var(--mono); font-size: 11.6px; line-height: 1.72; letter-spacing: 0;
+      color: #a9e9c9; background: #05080f;
+      border: 1px solid rgba(148, 163, 184, .16);
+      max-height: 320px; overflow: auto;
+      white-space: pre; word-break: normal; tab-size: 2;
+    }
+    .code-shell pre::-webkit-scrollbar { height: 8px; width: 8px; }
+    .code-shell pre::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, .28); border-radius: 4px; }
+    .copy-float {
+      position: absolute; top: 10px; right: 10px; z-index: 2;
+      background: rgba(20, 26, 42, .95);
+    }
+    .guide { display: grid; gap: 14px; }
+    .guide-block {
+      padding: 13px 14px; border-radius: 13px;
+      background: rgba(255, 255, 255, .028); border: 1px solid var(--line);
+    }
+    .guide-block h4 { font-size: 12.6px; font-weight: 700; color: #fff; margin-bottom: 7px; }
+    .guide-block ol, .guide-block ul { margin: 0; padding-left: 18px; font-size: 12.3px; line-height: 1.75; color: var(--text-dim); }
+    .guide-block li + li { margin-top: 3px; }
+    .guide-block code, .inline-code {
+      font-family: var(--mono); font-size: 11.4px; letter-spacing: 0;
+      padding: 1px 5px; border-radius: 5px;
+      background: rgba(139, 151, 255, .12); color: #c8cffd; white-space: nowrap;
+    }
+    .repo-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12.3px; color: var(--text-dim); }
+    .modal-foot {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 12px 18px; border-top: 1px solid var(--line); background: rgba(0, 0, 0, .22);
+    }
+    .hint { font-size: 11.5px; color: var(--text-mute); }
+    .switch { display: inline-flex; align-items: center; gap: 7px; font-size: 11.8px; color: var(--text-dim); cursor: pointer; }
+    .switch input { width: 15px; height: 15px; accent-color: #6a72f5; cursor: pointer; }
+
+    /* ============ Toast ============ */
+    .toast {
+      position: fixed; left: 50%; bottom: 26px; z-index: 80;
+      transform: translate(-50%, 14px);
+      padding: 10px 16px; border-radius: 11px;
+      font-size: 12.5px; font-weight: 600; color: #d8ffe9;
+      background: rgba(16, 42, 33, .96); border: 1px solid rgba(67, 217, 163, .45);
+      box-shadow: 0 20px 40px -22px rgba(0, 0, 0, 1);
+      opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+    }
+    .toast.is-show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ============ Footer ============ */
+    footer.site {
+      border-top: 1px solid var(--line); padding: 22px 0 30px;
+      font-size: 11.8px; color: var(--text-mute);
+    }
+    footer.site .row { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; }
+
+    /* ============ Responsive ============ */
+    @media (max-width: 820px) {
+      .toolbar { grid-template-columns: 1fr; }
+      .filters { display: grid; grid-template-columns: 1fr 1fr; }
+      .filters select { width: 100%; min-width: 0; }
+    }
+    @media (max-width: 560px) {
+      body { font-size: 14.5px; }
+      .brand-sub { display: none; }
+      .topbar-actions .btn span.label { display: none; }
+      .cards { grid-template-columns: 1fr; }
+      .card { padding: 16px; }
+      .stat { padding: 12px 14px; }
+      .stat-value { font-size: 20px; }
+      .modal-panel { max-height: 94vh; border-radius: 16px; }
+      .modal-head, .tabs, .modal-body { padding-left: 14px; padding-right: 14px; }
+      .card-actions .btn { flex: 1 1 calc(50% - 4px); }
+      .stack-btn { font-size: 12px; padding: 8px 11px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen">
+<body>
 
-  <!-- Header -->
-  <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-40 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <span class="text-2xl">⚡</span>
-        <div>
-          <div class="flex items-center space-x-2">
-            <h1 class="text-lg font-bold text-white tracking-tight">AI Skill Hub</h1>
-            <span id="runtime-badge" class="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">감지 중...</span>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">⚡</div>
+        <div class="brand-text">
+          <div class="brand-title">
+            <h1>AI Agent Skill Hub</h1>
+            <span id="runtime-badge" class="pill pill-runtime">감지 중…</span>
           </div>
-          <p class="text-xs text-slate-400">Claude Code · Grok Bot 웹 개발 스킬 자동 검색 및 설치 대시보드</p>
+          <p class="brand-sub">Claude Code · Grok Bot · Cursor용 MCP 스킬 카탈로그 — 토큰 절감 &amp; 코딩 최적화</p>
         </div>
       </div>
-      <div class="flex items-center space-x-3">
-        <button onclick="openConfigModal()" class="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center space-x-1.5 shadow-sm">
-          <span>⚙️</span>
-          <span>에이전트 설정(MCP) 확인</span>
+      <div class="topbar-actions">
+        <button type="button" class="btn btn-primary" onclick="openModal('config')">
+          <span aria-hidden="true">⚙️</span><span class="label">설정·연동 가이드</span>
         </button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+  <main class="wrap stack-lg">
 
-    <!-- Overview Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="glass-panel p-4 rounded-xl flex items-center justify-between">
-        <div>
-          <div class="text-xs text-slate-400 font-medium">등록된 총 스킬 플러그인</div>
-          <div class="text-2xl font-bold text-white mt-1" id="stat-total">0</div>
-        </div>
-        <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-lg">📦</div>
+    <!-- Hero + stats -->
+    <section class="hero">
+      <div>
+        <h2>필요한 스킬만 골라 붙이고, <em>토큰은 아끼고</em>.</h2>
+        <p>스택을 고르면 지금 작업에 필요한 MCP 스킬을 자동으로 정렬합니다. 고른 스킬은 <code class="inline-code">.mcp.json</code> 전체 설정과 <code class="inline-code">claude mcp add</code> 등록 명령으로 한 번에 복사할 수 있습니다.</p>
       </div>
-      <div class="glass-panel p-4 rounded-xl flex items-center justify-between border-emerald-500/20">
-        <div>
-          <div class="text-xs text-emerald-400 font-medium">현재 활성화(설치)된 스킬</div>
-          <div class="text-2xl font-bold text-emerald-300 mt-1" id="stat-installed">0</div>
-        </div>
-        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-lg text-emerald-400">✅</div>
+      <div class="hero-meta">
+        <span class="pill pill-live">🪙 토큰 절감 팩 5종 신규</span>
+        <span class="pill pill-runtime">총 13개 스킬</span>
+        <span class="pill pill-runtime">GitHub Pages 배포</span>
       </div>
-      <div class="glass-panel p-4 rounded-xl flex items-center justify-between">
-        <div>
-          <div class="text-xs text-slate-400 font-medium">호환 에이전트 환경</div>
-          <div class="text-sm font-semibold text-slate-200 mt-2">Claude Code, Grok, Cursor</div>
-        </div>
-        <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-lg">🤖</div>
-      </div>
-    </div>
-
-    <!-- Smart Stack Recommender Banner -->
-    <div class="glass-panel p-5 rounded-2xl border-indigo-500/30 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div class="flex items-center space-x-2">
-            <span class="text-sm font-bold text-indigo-300 uppercase tracking-wider">🎯 스마트 스택 추천 엔진</span>
-            <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 rounded">Auto-Match</span>
+      <div class="stat-row">
+        <div class="stat">
+          <div>
+            <div class="stat-label">표시 중인 스킬</div>
+            <div class="stat-value" id="stat-total">0</div>
           </div>
-          <p class="text-xs text-slate-300 mt-1">현재 개발 중인 웹 기술 스택을 선택하시면 가장 필요한 스킬 플러그인을 자동으로 추천·정렬합니다.</p>
+          <div class="stat-icon" aria-hidden="true">📦</div>
         </div>
-        <div class="flex flex-wrap gap-2" id="stack-buttons">
-          <button onclick="setStack('all')" class="stack-btn px-3 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 active-stack" data-stack="all">전체 스택</button>
-          <button onclick="setStack('nextjs,tailwind')" class="stack-btn px-3 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-700" data-stack="nextjs,tailwind">Next.js + Tailwind</button>
-          <button onclick="setStack('sqlite,drizzle')" class="stack-btn px-3 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-700" data-stack="sqlite,drizzle">SQLite + Drizzle</button>
-          <button onclick="setStack('rust,axum')" class="stack-btn px-3 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-700" data-stack="rust,axum">Rust Axum</button>
-          <button onclick="setStack('testing,security')" class="stack-btn px-3 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-700" data-stack="testing,security">테스팅 & 보안</button>
+        <div class="stat">
+          <div>
+            <div class="stat-label">설치(활성)됨</div>
+            <div class="stat-value" id="stat-installed" style="color:#7df0c4">0</div>
+          </div>
+          <div class="stat-icon" aria-hidden="true">✅</div>
+        </div>
+        <div class="stat">
+          <div>
+            <div class="stat-label">호환 에이전트</div>
+            <div class="stat-value sm">Claude Code · Grok · Cursor</div>
+          </div>
+          <div class="stat-icon" aria-hidden="true">🤖</div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Search & Filter Controls -->
-    <div class="flex flex-col sm:flex-row gap-3">
-      <div class="relative flex-1">
-        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">🔍</span>
-        <input type="text" id="search-input" oninput="debounceSearch()" placeholder="스킬 이름, 기능, 태그 검색 (예: nextjs, e2e, sqlite, tailwind...)" class="w-full pl-9 pr-4 py-2 text-sm bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:border-indigo-500 text-slate-100 placeholder-slate-500">
+    <!-- Token saver spotlight -->
+    <section class="spotlight" aria-labelledby="spotlight-title">
+      <div class="spotlight-head">
+        <span aria-hidden="true" style="font-size:19px">🪙</span>
+        <h3 id="spotlight-title">토큰 절감 &amp; 코딩 최적화 팩</h3>
+        <span class="pill" style="background:rgba(244,199,106,.18);color:#ffe1a8;border-color:rgba(244,199,106,.42)">NEW 5종</span>
       </div>
-      <div class="flex gap-2">
-        <select id="agent-filter" onchange="loadSkills()" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500">
-          <option value="all">전체 에이전트</option>
-          <option value="Claude Code">Claude Code</option>
-          <option value="Grok Bot">Grok Bot</option>
-          <option value="Cursor">Cursor</option>
-        </select>
-        <select id="category-filter" onchange="loadSkills()" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500">
-          <option value="all">전체 카테고리</option>
-          <option value="frontend">프론트엔드</option>
-          <option value="backend">백엔드</option>
-          <option value="database">데이터베이스</option>
-          <option value="testing">테스팅/품질</option>
-          <option value="devops">DevOps/배포</option>
-        </select>
+      <p>긴 문서 덤프·파일 전체 읽기·저장소 통째 첨부처럼 컨텍스트를 잡아먹던 방식을 걷어냅니다. 필요한 API 스펙과 심볼만 가져오고, 구현 전에 설계를 검증해 수정 루프 자체를 줄이는 구성입니다.</p>
+      <div class="spot-chips" id="spot-chips"></div>
+      <div class="spot-actions">
+        <button type="button" class="btn btn-gold" onclick="applyTokenPack()">🪙 팩만 보기</button>
+        <button type="button" class="btn" onclick="installTokenPack()">⚡ 팩 전체 설치</button>
+        <button type="button" class="btn" onclick="openModal('cli')">📋 등록 명령 복사</button>
       </div>
-    </div>
+      <p class="foot-note">* 절감 폭은 코드베이스 규모와 작업 방식에 따라 달라집니다. 수치는 각 도구의 공개 설명을 기준으로 한 안내입니다.</p>
+    </section>
 
-    <!-- Skills Grid -->
-    <div id="skills-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-      <!-- Dynamic render -->
-    </div>
+    <!-- One-command install -->
+    <section class="panel" aria-labelledby="install-title">
+      <div class="panel-head">
+        <h3 id="install-title">🚀 GitHub 원커맨드 자동 설치</h3>
+        <span>클론 없이 한 줄 — 설정 병합 + claude 등록까지 자동</span>
+      </div>
+      <div class="install-rows">
+        <div class="install-row">
+          <div class="meta"><span class="os">macOS · Linux · WSL · Termux</span><span class="what">.mcp.json 병합 + claude mcp add 자동 실행</span></div>
+          <code class="cmd-line" id="cmd-unix">curl -fsSL https://gitsong123.github.io/taegomap/agent-skill-dashboard/install.sh | bash</code>
+          <button type="button" class="btn btn-sm" onclick="copyEl('cmd-unix', '원커맨드 설치 스크립트 명령을 복사했습니다.')">📋 복사</button>
+        </div>
+        <div class="install-row">
+          <div class="meta"><span class="os">Windows PowerShell</span><span class="what">동일 동작 (병합 + claude 등록)</span></div>
+          <code class="cmd-line" id="cmd-win">irm https://gitsong123.github.io/taegomap/agent-skill-dashboard/install.ps1 | iex</code>
+          <button type="button" class="btn btn-sm" onclick="copyEl('cmd-win', 'Windows 설치 명령을 복사했습니다.')">📋 복사</button>
+        </div>
+        <div class="install-row">
+          <div class="meta"><span class="os">전역 적용</span><span class="what">모든 프로젝트에서 쓰려면 --global</span></div>
+          <code class="cmd-line" id="cmd-global">curl -fsSL https://gitsong123.github.io/taegomap/agent-skill-dashboard/install.sh | bash -s -- --global</code>
+          <button type="button" class="btn btn-sm" onclick="copyEl('cmd-global', '전역 설치 명령을 복사했습니다.')">📋 복사</button>
+        </div>
+        <div class="install-row is-prompt">
+          <div class="meta"><span class="os">에이전트 지시문</span><span class="what">Claude Code · Grok Bot에 그대로 붙여넣기</span></div>
+          <code class="cmd-line" id="cmd-agent">https://gitsong123.github.io/taegomap/agent-skill-dashboard/skills.json 을 읽고, 이 프로젝트에 맞는 스킬을 골라 .mcp.json에 병합한 뒤 claude mcp add로 등록해줘. 기존 설정은 지우지 말고, 같은 id는 건너뛰어.</code>
+          <button type="button" class="btn btn-sm" onclick="copyEl('cmd-agent', '에이전트 지시문을 복사했습니다.')">📋 복사</button>
+        </div>
+      </div>
+      <p class="foot-note install-foot">
+        파일: <a href="https://gitsong123.github.io/taegomap/agent-skill-dashboard/skills.json" target="_blank" rel="noopener">skills.json</a> ·
+        <a href="https://gitsong123.github.io/taegomap/agent-skill-dashboard/recommended-mcp.json" target="_blank" rel="noopener">recommended-mcp.json</a> ·
+        <a href="https://gitsong123.github.io/taegomap/agent-skill-dashboard/install.sh" target="_blank" rel="noopener">install.sh</a> ·
+        <a href="https://gitsong123.github.io/taegomap/agent-skill-dashboard/install.ps1" target="_blank" rel="noopener">install.ps1</a> ·
+        <a href="https://gitsong123.github.io/taegomap/agent-skill-dashboard/README.md" target="_blank" rel="noopener">README</a>
+      </p>
+    </section>
+
+    <!-- Stack presets -->
+    <section class="panel" aria-labelledby="preset-title">
+      <div class="panel-head">
+        <h3 id="preset-title">🎯 스마트 스택 추천</h3>
+        <span>스택을 고르면 맞는 스킬이 위로 정렬됩니다</span>
+      </div>
+      <div class="stack-list" id="stack-buttons">
+        <button type="button" class="stack-btn is-token" data-stack="token" onclick="setStack('token')">🪙 토큰 절감 &amp; 코딩 최적화</button>
+        <button type="button" class="stack-btn is-active" data-stack="all" onclick="setStack('all')">전체 스택</button>
+        <button type="button" class="stack-btn" data-stack="nextjs,tailwind" onclick="setStack('nextjs,tailwind')">Next.js + Tailwind</button>
+        <button type="button" class="stack-btn" data-stack="sqlite,drizzle" onclick="setStack('sqlite,drizzle')">SQLite + Drizzle</button>
+        <button type="button" class="stack-btn" data-stack="rust,axum" onclick="setStack('rust,axum')">Rust Axum</button>
+        <button type="button" class="stack-btn" data-stack="testing,security" onclick="setStack('testing,security')">테스팅 &amp; 보안</button>
+      </div>
+    </section>
+
+    <!-- Search & filters -->
+    <section class="panel" aria-label="검색과 필터">
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="icon" aria-hidden="true">🔍</span>
+          <input type="search" id="search-input" oninput="debounceSearch()" placeholder="스킬 이름·기능·태그 검색 (예: 토큰, context7, sqlite, diff)" aria-label="스킬 검색">
+        </div>
+        <div class="filters">
+          <select id="agent-filter" onchange="loadSkills()" aria-label="에이전트 필터">
+            <option value="all">전체 에이전트</option>
+            <option value="Claude Code">Claude Code</option>
+            <option value="Grok Bot">Grok Bot</option>
+            <option value="Cursor">Cursor</option>
+          </select>
+          <select id="category-filter" onchange="loadSkills()" aria-label="카테고리 필터">
+            <option value="all">전체 카테고리</option>
+            <option value="token">🪙 토큰 절감/효율</option>
+            <option value="frontend">프론트엔드</option>
+            <option value="backend">백엔드</option>
+            <option value="database">데이터베이스</option>
+            <option value="testing">테스팅/품질</option>
+            <option value="devops">DevOps/배포</option>
+          </select>
+        </div>
+      </div>
+      <div class="toolbar-meta">
+        <span><b id="result-count">0</b>개 스킬 · 정렬: <span id="sort-note">스택 적합도 → 이름순</span></span>
+        <button type="button" class="reset-link" onclick="resetFilters()">필터 초기화</button>
+      </div>
+    </section>
+
+    <!-- Cards -->
+    <section aria-label="스킬 목록">
+      <div id="skills-container" class="cards"></div>
+    </section>
 
   </main>
 
-  <!-- Modal: MCP Agent Config -->
-  <div id="config-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="glass-panel bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl">
-      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <span class="text-lg">⚙️</span>
-          <h2 class="font-bold text-white text-base">에이전트 연동 설정 (Config Generator)</h2>
+  <footer class="site">
+    <div class="wrap row">
+      <span>⚡ AI Agent Skill Hub · <a href="https://github.com/gitsong123/taegomap" target="_blank" rel="noopener">gitsong123/taegomap</a></span>
+      <span>Claude Code · Grok Bot · Cursor · MCP 표준(JSON-RPC 2.0)</span>
+    </div>
+  </footer>
+
+  <!-- ================= Modal ================= -->
+  <div class="modal" id="config-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-panel">
+      <div class="modal-head">
+        <div>
+          <h2 id="modal-title">⚙️ 설정·연동 가이드</h2>
+          <p>설치(활성)로 표시한 스킬이 아래 설정에 자동으로 담깁니다.</p>
         </div>
-        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+        <button type="button" class="icon-btn" onclick="closeModal()" aria-label="닫기">&times;</button>
       </div>
-      <div class="p-4 space-y-4 overflow-y-auto">
-        <div class="flex space-x-2 border-b border-slate-800 pb-2">
-          <button id="tab-claude" onclick="switchConfigTab('claude')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white">Claude Code (~/.claude/mcp.json)</button>
-          <button id="tab-grok" onclick="switchConfigTab('grok')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-slate-400 hover:text-white">Grok Bot (grok_skills.json)</button>
+
+      <div class="tabs" role="tablist" aria-label="설정 형식">
+        <button type="button" class="tab is-active" id="tab-json" role="tab" aria-selected="true" onclick="switchTab('json')">.mcp.json</button>
+        <button type="button" class="tab" id="tab-cli" role="tab" aria-selected="false" onclick="switchTab('cli')">claude mcp add</button>
+        <button type="button" class="tab" id="tab-grok" role="tab" aria-selected="false" onclick="switchTab('grok')">Grok Bot</button>
+        <button type="button" class="tab" id="tab-github" role="tab" aria-selected="false" onclick="switchTab('github')">GitHub 연동</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="lead" id="tab-lead"></p>
+        <div class="code-shell" id="code-shell">
+          <button type="button" class="btn btn-sm copy-float" id="copy-btn" onclick="copyCurrent()">📋 복사</button>
+          <pre id="config-code">불러오는 중…</pre>
         </div>
-        <div class="text-xs text-slate-400" id="config-guide">
-          아래 설정 파일은 현재 대시보드에서 <strong>설치(활성화)</strong>된 스킬들을 자동으로 포함하고 있습니다.
-        </div>
-        <div class="relative">
-          <pre id="config-code" class="bg-slate-950 p-4 rounded-xl text-xs font-mono text-emerald-400 border border-slate-800 overflow-x-auto max-h-72">로딩 중...</pre>
-          <button onclick="copyConfig()" class="absolute top-2.5 right-2.5 px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center space-x-1">
-            <span>📋 복사</span>
-          </button>
+        <div class="guide" id="github-guide" hidden>
+          <div class="guide-block">
+            <h4>0. 원커맨드 자동 설치 (가장 빠른 길)</h4>
+            <div class="install-rows" style="margin-top:8px">
+              <div class="install-row">
+                <div class="meta"><span class="os">macOS · Linux · WSL · Termux</span></div>
+                <code class="cmd-line" id="m-cmd-unix">curl -fsSL https://gitsong123.github.io/taegomap/agent-skill-dashboard/install.sh | bash</code>
+                <button type="button" class="btn btn-sm" onclick="copyEl('m-cmd-unix', '설치 명령을 복사했습니다.')">📋 복사</button>
+              </div>
+              <div class="install-row">
+                <div class="meta"><span class="os">Windows PowerShell</span></div>
+                <code class="cmd-line" id="m-cmd-win">irm https://gitsong123.github.io/taegomap/agent-skill-dashboard/install.ps1 | iex</code>
+                <button type="button" class="btn btn-sm" onclick="copyEl('m-cmd-win', '설치 명령을 복사했습니다.')">📋 복사</button>
+              </div>
+            </div>
+            <p class="foot-note">스크립트가 recommended-mcp.json을 .mcp.json에 병합하고, claude CLI가 있으면 claude mcp add까지 실행합니다.</p>
+          </div>
+          <div class="guide-block">
+            <h4>1. 저장소와 대시보드</h4>
+            <div class="repo-line">
+              저장소 <a href="https://github.com/gitsong123/taegomap" target="_blank" rel="noopener">gitsong123/taegomap</a>
+              <span aria-hidden="true">·</span>
+              라이브 <a href="https://gitsong123.github.io/taegomap/agent-skill-dashboard/" target="_blank" rel="noopener">Pages 대시보드</a>
+            </div>
+            <ul style="margin-top:7px">
+              <li>대시보드는 <code>agent-skill-dashboard/index.html</code>로 배포되며, 이 페이지 자체가 카탈로그입니다.</li>
+              <li>저장소를 받아 두면 프로젝트별 <code>.mcp.json</code>을 그 자리에서 만들 수 있습니다: <code>git clone https://github.com/gitsong123/taegomap.git</code></li>
+            </ul>
+          </div>
+          <div class="guide-block">
+            <h4>2. Claude Code에 적용</h4>
+            <ol>
+              <li>위 <b>claude mcp add</b> 탭에서 명령을 복사합니다.</li>
+              <li>터미널에서 그대로 실행합니다. 프로젝트에만 적용하려면 프로젝트 폴더에서, 모든 프로젝트에 적용하려면 <code>--scope user</code>를 붙입니다.</li>
+              <li>Claude Code를 다시 열고 <code>/mcp</code>를 입력해 서버가 <b>connected</b>인지 확인합니다.</li>
+              <li>“방금 등록한 스킬로 이 기능을 구현해줘”처럼 도구 이름을 언급하면 인식이 빠릅니다.</li>
+            </ol>
+          </div>
+          <div class="guide-block">
+            <h4>3. Grok Bot에 적용</h4>
+            <ol>
+              <li><b>Grok Bot</b> 탭의 <code>grok_skills.json</code>을 복사합니다.</li>
+              <li>봇이 읽는 설정 위치(또는 <code>.mcp.json</code>을 읽는 경우 그 파일)에 붙여넣고 재시작합니다.</li>
+              <li>스킬 목록에 <code>enabled: true</code>로 표시되면 연결 완료입니다.</li>
+            </ol>
+          </div>
+          <div class="guide-block">
+            <h4>4. 토큰을 아끼며 쓰는 요령</h4>
+            <ul>
+              <li>먼저 <b>Context7</b>로 정확한 API 스펙만 받고, 코드 탐색은 <b>AST 심볼 리더</b>로 좁힙니다.</li>
+              <li>큰 저장소는 <b>Repomix</b>로 구조만 인덱싱하고, 리뷰는 <b>Diff 인스펙터</b>로 변경분만 봅니다.</li>
+              <li>설계가 애매하면 <b>Sequential Thinking</b>으로 계획을 먼저 세워 재작업을 줄입니다.</li>
+            </ul>
+          </div>
         </div>
       </div>
-      <div class="p-3 border-t border-slate-800 bg-slate-950/50 flex justify-end">
-        <button onclick="closeConfigModal()" class="px-4 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-white rounded-lg">닫기</button>
+
+      <div class="modal-foot">
+        <label class="switch" id="scope-wrap"><input type="checkbox" id="scope-user" onchange="loadConfig()"> 전역 등록(<code class="inline-code">--scope user</code>)</label>
+        <span class="hint" id="modal-hint">JSON은 프로젝트 루트의 <code class="inline-code">.mcp.json</code>에 그대로 붙여넣으세요.</span>
       </div>
     </div>
   </div>
 
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
   <script>
+    /* =========================================================
+       스킬 카탈로그 (index.html · src/dashboard.html · dashboard.py 동기화)
+       ========================================================= */
     const DEFAULT_SKILLS = [
+      /* ---------- 🪙 토큰 절감 & 코딩 최적화 팩 (신규) ---------- */
+      {
+        id: "context7-live-docs",
+        name: "Context7 Live Docs (토큰 절감형 최신 문서 주입)",
+        category: "token",
+        description: "전체 웹 검색이나 긴 문서 덤프 대신, 필요한 라이브러리의 해당 버전 API 스펙만 추출해 컨텍스트에 주입합니다. 잘못된 API 사용(할루시네이션)과 문서 토큰을 동시에 줄입니다.",
+        agents: ["Claude Code", "Grok Bot", "Cursor"],
+        stacks: ["token", "docs", "typescript", "react", "nextjs", "python"],
+        mcp_command: "npx",
+        mcp_args: ["-y", "@upstash/context7-mcp"],
+        recommended_for: "최신 라이브러리 API를 정확하게 쓰고 싶을 때",
+        token_saver: true,
+        savings: "문서 컨텍스트 대폭 절감"
+      },
+      {
+        id: "ast-symbol-reader",
+        name: "AST Symbol Code Reader (파일 전체 읽기 방지)",
+        category: "token",
+        description: "파일 전체를 매번 읽지 않고 필요한 함수·클래스 심볼과 의존성만 타겟으로 불러옵니다. 큰 코드베이스에서 읽기 토큰을 크게 줄입니다(TS/JS AST 기반, 다국어 저장소는 Serena LSP 조합 권장).",
+        agents: ["Claude Code", "Grok Bot", "Cursor"],
+        stacks: ["token", "code", "typescript", "react", "nextjs", "refactor"],
+        mcp_command: "npx",
+        mcp_args: ["-y", "ast-mcp-server"],
+        recommended_for: "대형 코드베이스에서 심볼 단위로만 코드를 볼 때",
+        token_saver: true,
+        savings: "코드 읽기 토큰 최대 70%↓"
+      },
+      {
+        id: "repomix-repo-packer",
+        name: "Smart Repo Packer / Repomix",
+        category: "token",
+        description: "빌드 산출물과 lock 파일을 자동으로 제외하고 핵심 코드 구조만 압축 인덱싱해 모델에 전달합니다. 저장소를 통째로 붙여넣던 방식보다 전달 토큰이 크게 줄어듭니다.",
+        agents: ["Claude Code", "Grok Bot", "Cursor"],
+        stacks: ["token", "repo", "code", "devops", "monorepo"],
+        mcp_command: "npx",
+        mcp_args: ["-y", "repomix", "--mcp"],
+        recommended_for: "저장소 구조를 한 번에 파악해야 할 때",
+        token_saver: true,
+        savings: "저장소 컨텍스트 60~90%↓"
+      },
+      {
+        id: "sequential-thinking",
+        name: "Sequential Thinking & Plan Optimizer",
+        category: "token",
+        description: "무작정 코드를 뱉고 고치기를 반복하는 대신, 구현 전에 단계별 설계와 엣지케이스를 검증합니다. 재작업·재질문으로 새던 토큰을 줄입니다.",
+        agents: ["Claude Code", "Grok Bot"],
+        stacks: ["token", "planning", "architecture", "debug", "refactor"],
+        mcp_command: "npx",
+        mcp_args: ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+        recommended_for: "설계가 애매한 기능을 시작하기 전",
+        token_saver: true,
+        savings: "수정 루프 감소"
+      },
+      {
+        id: "github-diff-inspector",
+        name: "Minimal Diff & PR Inspector",
+        category: "token",
+        description: "저장소 전체가 아니라 변경된 Diff와 이슈 문맥만 조회해 GitHub 연동 작업의 토큰 소모를 최소화합니다. PR 리뷰·이슈 확인에 필요한 만큼만 읽습니다.",
+        agents: ["Claude Code", "Grok Bot"],
+        stacks: ["token", "github", "ci", "review", "devops"],
+        mcp_command: "npx",
+        mcp_args: ["-y", "@modelcontextprotocol/server-github"],
+        env: { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}" },
+        recommended_for: "PR·이슈 기반으로 최소한의 코드만 볼 때",
+        token_saver: true,
+        savings: "PR 조회 토큰 최소화"
+      },
+
+      /* ---------- 기존 웹 개발 스킬 ---------- */
       {
         id: "nextjs-app-router-expert",
         name: "Next.js App Router Expert",
@@ -240,43 +926,65 @@
       }
     ];
 
+    const TOKEN_PACK_IDS = [
+      "context7-live-docs",
+      "ast-symbol-reader",
+      "repomix-repo-packer",
+      "sequential-thinking",
+      "github-diff-inspector"
+    ];
+
+    const CATEGORY_LABEL = {
+      token: "토큰 절감/효율",
+      frontend: "프론트엔드",
+      backend: "백엔드",
+      database: "데이터베이스",
+      testing: "테스팅/품질",
+      devops: "DevOps/배포"
+    };
+
     let currentStack = 'all';
-    let currentConfigAgent = 'claude';
+    let currentTab = 'json';
     let searchTimeout = null;
     let isServerMode = false;
+    let lastRendered = [];
 
+    /* ---------------- 저장/불러오기 ---------------- */
     function getLocalInstalled() {
       try {
         const saved = localStorage.getItem('hub_installed_skills');
-        if (saved) return JSON.parse(saved);
-      } catch(e) {}
+        if (saved) {
+          const arr = JSON.parse(saved);
+          if (Array.isArray(arr)) return arr;
+        }
+      } catch (e) {}
       return ["nextjs-app-router-expert", "tailwind-component-craft"];
     }
 
     function saveLocalInstalled(ids) {
-      try {
-        localStorage.setItem('hub_installed_skills', JSON.stringify(ids));
-      } catch(e) {}
+      try { localStorage.setItem('hub_installed_skills', JSON.stringify(ids)); } catch (e) {}
     }
 
     function setBadge(serverMode) {
       isServerMode = serverMode;
       const b = document.getElementById('runtime-badge');
+      if (!b) return;
       if (serverMode) {
-        b.className = 'px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
-        b.innerText = '⚡ Rust Server 연동';
+        b.className = 'pill pill-live';
+        b.innerText = '⚡ 로컬 서버 연동';
       } else {
-        b.className = 'px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
-        b.innerText = '🌐 웹 독립 실행 모드';
+        b.className = 'pill pill-runtime';
+        b.innerText = '🌐 웹 독립 실행';
       }
     }
 
+    /* ---------------- 필터/정렬 ---------------- */
     async function loadSkills() {
       const q = document.getElementById('search-input').value.trim().toLowerCase();
       const category = document.getElementById('category-filter').value;
       const agent = document.getElementById('agent-filter').value;
 
-      const url = `/api/skills?q=${encodeURIComponent(q)}&category=${category}&agent=${agent}&stack=${currentStack}`;
+      const url = `/api/skills?q=${encodeURIComponent(q)}&category=${encodeURIComponent(category)}&agent=${encodeURIComponent(agent)}&stack=${encodeURIComponent(currentStack)}`;
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 2000);
@@ -284,34 +992,33 @@
         clearTimeout(timeoutId);
         if (!res.ok) throw new Error('Non-200');
         const skills = await res.json();
-        renderSkills(skills);
+        if (!Array.isArray(skills)) throw new Error('Bad payload');
+        renderSkills(skills.map(s => ({ token_saver: s.category === 'token', ...s })));
         updateStats(skills);
         setBadge(true);
+        return;
       } catch (e) {
-        // Fallback to client-side in-browser engine
-        loadSkillsClientSide(q, category, agent);
-        setBadge(false);
+        /* 서버가 없으면 브라우저에서 직접 필터링 */
       }
+      loadSkillsClientSide(q, category, agent);
+      setBadge(false);
     }
 
     function loadSkillsClientSide(q, category, agent) {
       const installedList = getLocalInstalled();
-      let stackKeys = [];
-      if (currentStack !== 'all') {
-        stackKeys = currentStack.split(',').map(s => s.trim().toLowerCase());
-      }
+      const stackKeys = currentStack === 'all'
+        ? []
+        : currentStack.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
       let filtered = DEFAULT_SKILLS.map(skill => {
-        const installed = installedList.includes(skill.id);
         let score = 0;
         if (stackKeys.length > 0) {
-          for (const k of stackKeys) {
-            if (skill.stacks.some(st => st.toLowerCase().includes(k))) {
-              score += 10;
-            }
+          for (const key of stackKeys) {
+            if (skill.stacks.some(st => st.toLowerCase() === key)) score += 10;
+            else if (skill.stacks.some(st => st.toLowerCase().includes(key))) score += 6;
           }
         }
-        return { ...skill, installed, score };
+        return { ...skill, installed: installedList.includes(skill.id), score };
       });
 
       if (category !== 'all') {
@@ -321,15 +1028,19 @@
         filtered = filtered.filter(s => s.agents.some(a => a.toLowerCase() === agent.toLowerCase()));
       }
       if (q) {
-        filtered = filtered.filter(s => 
-          s.name.toLowerCase().includes(q) || 
+        filtered = filtered.filter(s =>
+          s.name.toLowerCase().includes(q) ||
           s.description.toLowerCase().includes(q) ||
-          s.stacks.some(st => st.toLowerCase().includes(q))
+          (s.recommended_for || '').toLowerCase().includes(q) ||
+          s.category.toLowerCase().includes(q) ||
+          s.stacks.some(st => st.toLowerCase().includes(q)) ||
+          `${s.mcp_command} ${s.mcp_args.join(' ')}`.toLowerCase().includes(q)
         );
       }
 
       filtered.sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
+        if (!!b.token_saver !== !!a.token_saver) return b.token_saver ? 1 : -1;
         return a.name.localeCompare(b.name);
       });
 
@@ -339,105 +1050,121 @@
 
     function updateStats(skills) {
       document.getElementById('stat-total').innerText = skills.length;
-      const installed = skills.filter(s => s.installed).length;
-      document.getElementById('stat-installed').innerText = installed;
+      document.getElementById('result-count').innerText = skills.length;
+      const ids = getLocalInstalled();
+      const installedTotal = DEFAULT_SKILLS.filter(s => ids.includes(s.id)).length;
+      document.getElementById('stat-installed').innerText = installedTotal;
+    }
+
+    function esc(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     function renderSkills(skills) {
+      lastRendered = skills;
       const container = document.getElementById('skills-container');
-      if (skills.length === 0) {
+      if (!skills.length) {
         container.innerHTML = `
-          <div class="col-span-full py-16 text-center text-slate-500">
-            <div class="text-3xl mb-2">🔍</div>
-            <p class="text-sm">조건에 맞는 스킬 플러그인을 찾지 못했습니다.</p>
-          </div>
-        `;
+          <div class="empty">
+            <span class="big" aria-hidden="true">🔍</span>
+            조건에 맞는 스킬을 찾지 못했습니다. 검색어나 필터를 바꿔 보세요.
+          </div>`;
         return;
       }
 
       container.innerHTML = skills.map(skill => {
+        const isToken = !!skill.token_saver || skill.category === 'token';
         const isRec = skill.score > 0;
-        const agentsBadges = skill.agents.map(a => `<span class="px-1.5 py-0.5 text-[10px] rounded bg-slate-800 text-slate-300 border border-slate-700 font-mono">${a}</span>`).join(' ');
+        const catLabel = CATEGORY_LABEL[skill.category] || skill.category;
+        const cmdText = `${skill.mcp_command} ${skill.mcp_args.join(' ')}`;
+        const classes = ['card', isToken ? 'is-token' : '', isRec ? 'is-rec' : ''].filter(Boolean).join(' ');
 
         return `
-          <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between border transition duration-200 ${isRec ? 'border-indigo-500/50 shadow-lg shadow-indigo-950/30' : 'border-slate-800 hover:border-slate-700'}">
-            <div>
-              <div class="flex items-start justify-between gap-2 mb-2">
-                <div>
-                  ${isRec ? '<span class="inline-block mb-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">✨ 스택 맞춤 추천</span>' : ''}
-                  <h3 class="font-bold text-white text-base leading-snug">${skill.name}</h3>
-                </div>
-                <span class="px-2 py-0.5 text-[10px] uppercase font-semibold rounded bg-slate-800/80 text-slate-400 border border-slate-700">${skill.category}</span>
-              </div>
-              <p class="text-xs text-slate-300 leading-relaxed mt-1 mb-3">${skill.description}</p>
-              <div class="text-[11px] text-slate-400 bg-slate-900/60 p-2 rounded-lg border border-slate-800/60 mb-3">
-                <span class="text-slate-500 font-medium">추천 용도:</span> ${skill.recommended_for}
-              </div>
+          <article class="${classes}">
+            <div class="card-tags-top">
+              <span class="cat-chip ${isToken ? 'cat-token' : ''}">${isToken ? '🪙 ' : ''}${esc(catLabel)}</span>
+              ${skill.savings ? `<span class="save-chip">${esc(skill.savings)}</span>` : ''}
+              ${isRec && !skill.savings ? '<span class="rec-chip">✨ 스택 맞춤</span>' : ''}
             </div>
-
-            <div class="pt-3 border-t border-slate-800/80">
-              <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center space-x-1">
-                  ${agentsBadges}
-                </div>
-              </div>
-              <div class="flex items-center justify-between gap-2">
-                <div class="text-[10px] font-mono text-slate-500 truncate max-w-[160px] bg-slate-950 px-2 py-1 rounded border border-slate-800">
-                  ${skill.mcp_command} ${skill.mcp_args.join(' ')}
-                </div>
-                <button onclick="toggleInstall('${skill.id}', ${skill.installed})" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
-                  skill.installed 
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/40' 
-                    : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm'
-                }">
+            <h3 class="card-title">${esc(skill.name)}</h3>
+            <p class="card-desc">${esc(skill.description)}</p>
+            <div class="card-use"><b>추천 용도</b>${esc(skill.recommended_for || '')}</div>
+            <div class="card-stacks">
+              ${skill.agents.map(a => `<span class="tag">${esc(a)}</span>`).join('')}
+            </div>
+            <div class="card-foot">
+              <div class="cmd" title="${esc(cmdText)}">${esc(cmdText)}</div>
+              <div class="card-actions">
+                <button type="button" class="btn btn-sm" onclick="copySkill('${skill.id}')">📋 명령 복사</button>
+                <button type="button" class="btn btn-sm ${skill.installed ? 'btn-installed' : 'btn-primary'}"
+                        onclick="toggleInstall('${skill.id}', ${skill.installed ? 'true' : 'false'})">
                   ${skill.installed ? '✓ 설치됨 (해제)' : '+ 1클릭 설치'}
                 </button>
               </div>
             </div>
-          </div>
-        `;
+          </article>`;
       }).join('');
     }
 
+    /* ---------------- 설치 토글 ---------------- */
     async function toggleInstall(id, currentlyInstalled) {
       if (isServerMode) {
-        const endpoint = currentlyInstalled ? '/api/uninstall' : '/api/install';
         try {
-          const res = await fetch(endpoint, {
+          const res = await fetch(currentlyInstalled ? '/api/uninstall' : '/api/install', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id })
           });
           if (res.ok) {
+            let ids = getLocalInstalled();
+            if (currentlyInstalled) ids = ids.filter(x => x !== id);
+            else if (!ids.includes(id)) ids.push(id);
+            saveLocalInstalled(ids);
             loadSkills();
+            toast(currentlyInstalled ? '설치를 해제했습니다.' : '설치 목록에 추가했습니다.');
             return;
           }
         } catch (e) {}
       }
-
-      // Client-side fallback with localStorage
       let ids = getLocalInstalled();
-      if (currentlyInstalled) {
-        ids = ids.filter(x => x !== id);
-      } else {
-        if (!ids.includes(id)) ids.push(id);
-      }
+      if (currentlyInstalled) ids = ids.filter(x => x !== id);
+      else if (!ids.includes(id)) ids.push(id);
       saveLocalInstalled(ids);
       loadSkills();
+      toast(currentlyInstalled ? '설치를 해제했습니다.' : '설치 목록에 추가했습니다.');
+    }
+
+    function installTokenPack() {
+      const ids = getLocalInstalled();
+      let added = 0;
+      TOKEN_PACK_IDS.forEach(id => { if (!ids.includes(id)) { ids.push(id); added++; } });
+      saveLocalInstalled(ids);
+      loadSkills();
+      toast(added ? `토큰 절감 팩 ${added}개를 설치 목록에 추가했습니다.` : '토큰 절감 팩은 이미 모두 설치되어 있습니다.');
+    }
+
+    function applyTokenPack() {
+      document.getElementById('category-filter').value = 'token';
+      document.getElementById('search-input').value = '';
+      setStack('token');
+      toast('토큰 절감 팩만 표시합니다.');
     }
 
     function setStack(stack) {
       currentStack = stack;
       document.querySelectorAll('.stack-btn').forEach(btn => {
-        if (btn.dataset.stack === stack) {
-          btn.classList.add('border-indigo-500', 'bg-indigo-600/30', 'text-white');
-          btn.classList.remove('bg-slate-800/60', 'text-slate-300');
-        } else {
-          btn.classList.remove('border-indigo-500', 'bg-indigo-600/30', 'text-white');
-          btn.classList.add('bg-slate-800/60', 'text-slate-300');
-        }
+        btn.classList.toggle('is-active', btn.dataset.stack === stack);
       });
       loadSkills();
+    }
+
+    function resetFilters() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('category-filter').value = 'all';
+      document.getElementById('agent-filter').value = 'all';
+      setStack('all');
     }
 
     function debounceSearch() {
@@ -445,80 +1172,194 @@
       searchTimeout = setTimeout(loadSkills, 200);
     }
 
-    async function openConfigModal() {
-      document.getElementById('config-modal').classList.remove('hidden');
-      loadConfigCode();
+    /* ---------------- 모달 ---------------- */
+    function openModal(tab) {
+      document.getElementById('config-modal').classList.add('is-open');
+      if (tab) switchTab(tab);
+      else loadConfig();
+      loadConfig();
     }
 
-    function closeConfigModal() {
-      document.getElementById('config-modal').classList.add('hidden');
+    function closeModal() {
+      document.getElementById('config-modal').classList.remove('is-open');
     }
 
-    function switchConfigTab(agent) {
-      currentConfigAgent = agent;
-      if (agent === 'claude') {
-        document.getElementById('tab-claude').className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white';
-        document.getElementById('tab-grok').className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-slate-400 hover:text-white';
-      } else {
-        document.getElementById('tab-grok').className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white';
-        document.getElementById('tab-claude').className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-slate-400 hover:text-white';
-      }
-      loadConfigCode();
+    function switchTab(tab) {
+      currentTab = tab;
+      ['json', 'cli', 'grok', 'github'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (!el) return;
+        el.classList.toggle('is-active', t === tab);
+        el.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+      });
+      const isGithub = tab === 'github';
+      document.getElementById('github-guide').hidden = !isGithub;
+      document.getElementById('code-shell').hidden = isGithub;
+      document.getElementById('copy-btn').hidden = isGithub;
+      document.getElementById('scope-wrap').style.visibility = tab === 'cli' ? 'visible' : 'hidden';
+
+      const leads = {
+        json: '프로젝트 루트의 .mcp.json(또는 Cursor의 MCP 설정)에 그대로 붙여넣으면 Claude Code·Cursor가 다음 실행 때 서버를 시작합니다.',
+        cli: '터미널에 붙여넣으면 Claude Code에 바로 등록됩니다. 프로젝트 폴더에서 실행하면 해당 프로젝트에만 적용됩니다.',
+        grok: 'Grok Bot이 읽는 grok_skills.json 형식입니다. 스킬별 실행 명령과 활성 상태를 담습니다.',
+        github: '이 대시보드와 같은 저장소에서 MCP 스킬을 바로 쓰는 방법입니다.'
+      };
+      document.getElementById('tab-lead').innerText = leads[tab] || '';
+      const hints = {
+        json: 'JSON은 프로젝트 루트의 .mcp.json에 그대로 붙여넣으세요.',
+        cli: '줄 단위로 하나씩 실행하세요. 등록 확인은 claude mcp list.',
+        grok: '붙여넣은 뒤 Grok Bot을 재시작하세요.',
+        github: ''
+      };
+      document.getElementById('modal-hint').innerText = hints[tab] || '';
+      loadConfig();
     }
 
-    async function loadConfigCode() {
+    /* ---------------- 설정 생성 ---------------- */
+    function getInstalledSkills() {
+      const ids = getLocalInstalled();
+      return DEFAULT_SKILLS.filter(s => ids.includes(s.id));
+    }
+
+    function claudeAddCommand(skill, scopeUser) {
+      const envPart = skill.env
+        ? Object.entries(skill.env).map(([k, v]) => `-e ${k}=${v}`).join(' ') + ' '
+        : '';
+      const scopePart = scopeUser ? '--scope user ' : '';
+      return `claude mcp add ${scopePart}${skill.id} ${envPart}-- ${skill.mcp_command} ${skill.mcp_args.join(' ')}`;
+    }
+
+    async function loadConfig() {
       const codeElem = document.getElementById('config-code');
-      if (isServerMode) {
+      if (currentTab === 'github') return;
+
+      if (isServerMode && currentTab !== 'cli') {
         try {
-          const res = await fetch(`/api/config?agent=${currentConfigAgent}`);
+          const agent = currentTab === 'grok' ? 'grok' : 'claude';
+          const res = await fetch(`/api/config?agent=${agent}`);
           if (res.ok) {
-            const text = await res.text();
-            codeElem.innerText = text;
+            codeElem.innerText = await res.text();
             return;
           }
         } catch (e) {}
       }
 
-      // Client-side fallback config generator
-      const installedIds = getLocalInstalled();
-      const installedSkills = DEFAULT_SKILLS.filter(s => installedIds.includes(s.id));
+      const installed = getInstalledSkills();
+      const scopeUser = document.getElementById('scope-user').checked;
 
-      if (currentConfigAgent === 'claude') {
+      if (currentTab === 'json') {
         const mcpServers = {};
-        for (const s of installedSkills) {
-          mcpServers[s.id] = {
-            command: s.mcp_command,
-            args: s.mcp_args
-          };
+        for (const raw of installed) {
+          const s = { command: raw.mcp_command, args: raw.mcp_args };
+          if (raw.env) s.env = { ...raw.env };
+          mcpServers[raw.id] = s;
         }
-        const json = { mcpServers };
-        codeElem.innerText = JSON.stringify(json, null, 2);
-      } else {
-        const skills = installedSkills.map(s => ({
-          id: s.id,
-          name: s.name,
-          command: s.mcp_command,
-          args: s.mcp_args,
-          enabled: true
-        }));
-        const json = {
-          version: "1.0",
-          agent: "grok-bot",
-          skills
-        };
-        codeElem.innerText = JSON.stringify(json, null, 2);
+        codeElem.innerText = JSON.stringify({ mcpServers }, null, 2);
+      } else if (currentTab === 'cli') {
+        const lines = installed.map(s => claudeAddCommand(s, scopeUser));
+        codeElem.innerText = lines.length
+          ? lines.join('\n')
+          : '# 설치(활성)된 스킬이 없습니다. 카드에서 "1클릭 설치"를 눌러 주세요.';
+      } else if (currentTab === 'grok') {
+        const skills = installed.map(s => {
+          const item = {
+            id: s.id,
+            name: s.name,
+            command: s.mcp_command,
+            args: s.mcp_args,
+            enabled: true
+          };
+          if (s.env) item.env = { ...s.env };
+          return item;
+        });
+        codeElem.innerText = JSON.stringify({ version: "1.0", agent: "grok-bot", skills }, null, 2);
       }
     }
 
-    function copyConfig() {
+    function copyCurrent() {
       const code = document.getElementById('config-code').innerText;
-      navigator.clipboard.writeText(code).then(() => {
-        alert('설정 JSON이 클립보드에 복사되었습니다!');
-      });
+      copyText(code, currentTab === 'cli' ? 'claude mcp add 명령을 복사했습니다. 터미널에 붙여넣으세요.' : '설정을 복사했습니다.');
     }
 
-    // 초기 실행
+    function copyEl(id, okMessage) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      copyText(el.innerText, okMessage);
+    }
+
+    function copySkill(id) {
+      const skill = DEFAULT_SKILLS.find(s => s.id === id);
+      if (!skill) return;
+      const scopeUser = document.getElementById('scope-user')
+        ? document.getElementById('scope-user').checked
+        : false;
+      copyText(claudeAddCommand(skill, scopeUser), `"${skill.name}" 등록 명령을 복사했습니다.`);
+    }
+
+    function copyText(text, okMessage) {
+      const done = () => toast(okMessage || '복사했습니다.');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+      } else {
+        fallbackCopy(text, done);
+      }
+    }
+
+    function fallbackCopy(text, done) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); }
+      catch (e) { toast('복사에 실패했습니다. 코드를 직접 선택해 주세요.'); }
+      document.body.removeChild(ta);
+    }
+
+    let toastTimer = null;
+    function toast(message) {
+      const el = document.getElementById('toast');
+      el.innerText = message;
+      el.classList.add('is-show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('is-show'), 2400);
+    }
+
+    /* ---------------- 이벤트 ---------------- */
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+    });
+    document.getElementById('config-modal').addEventListener('click', e => {
+      if (e.target.id === 'config-modal') closeModal();
+    });
+
+    /* 토큰 팩 칩 */
+    (function buildSpotChips() {
+      const box = document.getElementById('spot-chips');
+      box.innerHTML = TOKEN_PACK_IDS.map(id => {
+        const s = DEFAULT_SKILLS.find(x => x.id === id);
+        if (!s) return '';
+        const short = s.name.replace(/\s*\(.*\)\s*$/, '');
+        return `<button type="button" class="spot-chip" onclick="focusSkill('${id}')">
+          <span aria-hidden="true">🪙</span>${esc(short)}
+        </button>`;
+      }).join('');
+    })();
+
+    function focusSkill(id) {
+      const skill = DEFAULT_SKILLS.find(s => s.id === id);
+      if (!skill) return;
+      document.getElementById('category-filter').value = 'token';
+      document.getElementById('search-input').value = skill.name.split('(')[0].trim();
+      setStack('all');
+      document.getElementById('skills-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    /* 초기 실행 */
     loadSkills();
+    window.addEventListener('load', () => setBadge(isServerMode));
   </script>
 </body>
 </html>

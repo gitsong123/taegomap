@@ -1,0 +1,433 @@
+{
+  "schema": "ai-agent-skill-catalog/1.0",
+  "version": "1.1.0",
+  "updated": "2026-11-14",
+  "name": "AI Agent Skill Hub",
+  "description": "Claude Code · Grok Bot · Cursor용 MCP 스킬 카탈로그. 코딩 생산성과 토큰 절감에 특화된 스킬을 스택 태그로 골라 .mcp.json 또는 claude mcp add 명령으로 바로 등록해 사용합니다.",
+  "repository": "https://github.com/gitsong123/taegomap",
+  "dashboard": "https://gitsong123.github.io/taegomap/agent-skill-dashboard/",
+  "files": {
+    "dashboard": "https://gitsong123.github.io/taegomap/agent-skill-dashboard/index.html",
+    "catalog": "https://gitsong123.github.io/taegomap/agent-skill-dashboard/skills.json",
+    "recommendedConfig": "https://gitsong123.github.io/taegomap/agent-skill-dashboard/recommended-mcp.json",
+    "installerUnix": "https://gitsong123.github.io/taegomap/agent-skill-dashboard/install.sh",
+    "installerWindows": "https://gitsong123.github.io/taegomap/agent-skill-dashboard/install.ps1",
+    "readme": "https://gitsong123.github.io/taegomap/agent-skill-dashboard/README.md"
+  },
+  "install": {
+    "unix": "curl -fsSL https://gitsong123.github.io/taegomap/agent-skill-dashboard/install.sh | bash",
+    "windows": "irm https://gitsong123.github.io/taegomap/agent-skill-dashboard/install.ps1 | iex",
+    "note": "설치 스크립트는 recommended-mcp.json을 내려받아 현재 프로젝트의 .mcp.json에 병합하고, claude CLI가 있으면 claude mcp add까지 실행합니다."
+  },
+  "agents": [
+    "Claude Code",
+    "Grok Bot",
+    "Cursor"
+  ],
+  "categories": {
+    "token": "토큰 절감/효율",
+    "frontend": "프론트엔드",
+    "backend": "백엔드",
+    "database": "데이터베이스",
+    "testing": "테스팅/품질",
+    "devops": "DevOps/배포"
+  },
+  "skillSchema": {
+    "id": "고유 식별자(영문 kebab-case). .mcp.json의 서버 이름으로 그대로 사용됩니다.",
+    "name": "표시 이름",
+    "category": "categories 중 하나",
+    "description": "무엇을 하는 스킬인지 1~2문장",
+    "agents": "호환 에이전트 목록",
+    "stacks": "추천 스택 태그(소문자). 대시보드 스택 프리셋과 매칭에 사용됩니다.",
+    "mcp": "MCP 실행 설정 {command, args, env?}",
+    "claude_mcp_add": "Claude Code 즉시 등록 명령",
+    "recommended_for": "어떤 상황에서 쓰면 좋은지",
+    "token_saver": "토큰 절감 팩 여부",
+    "savings": "절감 효과 요약(있을 때만)"
+  },
+  "tokenPack": {
+    "title": "토큰 절감 & 코딩 최적화 팩",
+    "ids": [
+      "context7-live-docs",
+      "ast-symbol-reader",
+      "repomix-repo-packer",
+      "sequential-thinking",
+      "github-diff-inspector"
+    ],
+    "why": "긴 문서 덤프·파일 전체 읽기·저장소 통째 첨부처럼 컨텍스트를 크게 쓰던 방식을 줄이고, 구현 전 설계 검증으로 수정 루프 자체를 줄이는 구성입니다."
+  },
+  "skills": [
+    {
+      "id": "context7-live-docs",
+      "name": "Context7 Live Docs (토큰 절감형 최신 문서 주입)",
+      "category": "token",
+      "category_label": "토큰 절감/효율",
+      "description": "전체 웹 검색이나 긴 문서 덤프 대신, 필요한 라이브러리의 해당 버전 API 스펙만 추출해 컨텍스트에 주입합니다. 잘못된 API 사용(할루시네이션)과 문서 토큰을 동시에 줄입니다.",
+      "agents": [
+        "Claude Code",
+        "Grok Bot",
+        "Cursor"
+      ],
+      "stacks": [
+        "token",
+        "docs",
+        "typescript",
+        "react",
+        "nextjs",
+        "python"
+      ],
+      "mcp": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@upstash/context7-mcp"
+        ]
+      },
+      "claude_mcp_add": "claude mcp add context7-live-docs -- npx -y @upstash/context7-mcp",
+      "recommended_for": "최신 라이브러리 API를 정확하게 쓰고 싶을 때",
+      "token_saver": true,
+      "savings": "문서 컨텍스트 대폭 절감"
+    },
+    {
+      "id": "ast-symbol-reader",
+      "name": "AST Symbol Code Reader (파일 전체 읽기 방지)",
+      "category": "token",
+      "category_label": "토큰 절감/효율",
+      "description": "파일 전체를 매번 읽지 않고 필요한 함수·클래스 심볼과 의존성만 타겟으로 불러옵니다. 큰 코드베이스에서 읽기 토큰을 크게 줄입니다(TS/JS AST 기반, 다국어 저장소는 Serena LSP 조합 권장).",
+      "agents": [
+        "Claude Code",
+        "Grok Bot",
+        "Cursor"
+      ],
+      "stacks": [
+        "token",
+        "code",
+        "typescript",
+        "react",
+        "nextjs",
+        "refactor"
+      ],
+      "mcp": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "ast-mcp-server"
+        ]
+      },
+      "claude_mcp_add": "claude mcp add ast-symbol-reader -- npx -y ast-mcp-server",
+      "recommended_for": "대형 코드베이스에서 심볼 단위로만 코드를 볼 때",
+      "token_saver": true,
+      "savings": "코드 읽기 토큰 최대 70%↓"
+    },
+    {
+      "id": "repomix-repo-packer",
+      "name": "Smart Repo Packer / Repomix",
+      "category": "token",
+      "category_label": "토큰 절감/효율",
+      "description": "빌드 산출물과 lock 파일을 자동으로 제외하고 핵심 코드 구조만 압축 인덱싱해 모델에 전달합니다. 저장소를 통째로 붙여넣던 방식보다 전달 토큰이 크게 줄어듭니다.",
+      "agents": [
+        "Claude Code",
+        "Grok Bot",
+        "Cursor"
+      ],
+      "stacks": [
+        "token",
+        "repo",
+        "code",
+        "devops",
+        "monorepo"
+      ],
+      "mcp": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "repomix",
+          "--mcp"
+        ]
+      },
+      "claude_mcp_add": "claude mcp add repomix-repo-packer -- npx -y repomix --mcp",
+      "recommended_for": "저장소 구조를 한 번에 파악해야 할 때",
+      "token_saver": true,
+      "savings": "저장소 컨텍스트 60~90%↓"
+    },
+    {
+      "id": "sequential-thinking",
+      "name": "Sequential Thinking & Plan Optimizer",
+      "category": "token",
+      "category_label": "토큰 절감/효율",
+      "description": "무작정 코드를 뱉고 고치기를 반복하는 대신, 구현 전에 단계별 설계와 엣지케이스를 검증합니다. 재작업·재질문으로 새던 토큰을 줄입니다.",
+      "agents": [
+        "Claude Code",
+        "Grok Bot"
+      ],
+      "stacks": [
+        "token",
+        "planning",
+        "architecture",
+        "debug",
+        "refactor"
+      ],
+      "mcp": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ]
+      },
+      "claude_mcp_add": "claude mcp add sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking",
+      "recommended_for": "설계가 애매한 기능을 시작하기 전",
+      "token_saver": true,
+      "savings": "수정 루프 감소"
+    },
+    {
+      "id": "github-diff-inspector",
+      "name": "Minimal Diff & PR Inspector",
+      "category": "token",
+      "category_label": "토큰 절감/효율",
+      "description": "저장소 전체가 아니라 변경된 Diff와 이슈 문맥만 조회해 GitHub 연동 작업의 토큰 소모를 최소화합니다. PR 리뷰·이슈 확인에 필요한 만큼만 읽습니다.",
+      "agents": [
+        "Claude Code",
+        "Grok Bot"
+      ],
+      "stacks": [
+        "token",
+        "github",
+        "ci",
+        "review",
+        "devops"
+      ],
+      "mcp": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-github"
+        ],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        }
+      },
+      "claude_mcp_add": "claude mcp add github-diff-inspector -e GITHUB_PERSONAL_ACCESS_TOKEN=${GITHUB_PERSONAL_ACCESS_TOKEN} -- npx -y @modelcontextprotocol/server-github",
+      "recommended_for": "PR·이슈 기반으로 최소한의 코드만 볼 때",
+      "token_saver": true,
+      "savings": "PR 조회 토큰 최소화"
+    },
+    {
+      "id": "nextjs-app-router-expert",
+      "name": "Next.js App Router Expert",
+      "category": "frontend",
+      "category_label": "프론트엔드",
+      "description": "Next.js 15 App Router, Server Actions, SSR/SSG 캐싱 전략 및 라우트 핸들러 자동 최적화 MCP 스킬",
+      "agents": [
+        "Claude Code",
+        "Grok Bot",
+        "Cursor"
+      ],
+      "stacks": [
+        "nextjs",
+        "react",
+        "typescript"
+      ],
+      "mcp": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-nextjs"
+        ]
+      },
+      "claude_mcp_add": "claude mcp add nextjs-app-router-expert -- npx -y @modelcontextprotocol/server-nextjs",
+      "recommended_for": "Next.js 풀스택 웹앱 개발 시",
+      "token_saver": false
+    },
+    {
+      "id": "tailwind-component-craft",
+      "name": "Tailwind UI Component Craft",
+      "category": "frontend",
+      "category_label": "프론트엔드",
+      "description": "Tailwind CSS v4 기반 반응형 웹 컴포넌트 자동 생성, 디자인 시스템 토큰 및 접근성(a11y) 검증",
+      "agents": [
+        "Claude Code",
+        "Grok Bot"
+      ],
+      "stacks": [
+        "tailwind",
+        "react",
+        "nextjs",
+        "vue"
+      ],
+      "mcp": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "mcp-tailwind-craft"
+        ]
+      },
+      "claude_mcp_add": "claude mcp add tailwind-component-craft -- npx -y mcp-tailwind-craft",
+      "recommended_for": "모던 웹 UI/UX 빠른 프로토타이핑",
+      "token_saver": false
+    },
+    {
+      "id": "sqlite-drizzle-agent",
+      "name": "SQLite & Drizzle Schema Architect",
+      "category": "database",
+      "category_label": "데이터베이스",
+      "description": "경량 SQLite DB 스키마 설계, Drizzle ORM 마이그레이션 생성 및 쿼리 최적화 에이전트",
+      "agents": [
+        "Claude Code",
+        "Grok Bot",
+        "Cursor"
+      ],
+      "stacks": [
+        "sqlite",
+        "drizzle",
+        "nextjs",
+        "typescript"
+      ],
+      "mcp": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "mcp-sqlite-drizzle",
+          "--db",
+          "./dev.sqlite"
+        ]
+      },
+      "claude_mcp_add": "claude mcp add sqlite-drizzle-agent -- npx -y mcp-sqlite-drizzle --db ./dev.sqlite",
+      "recommended_for": "로컬 및 서버리스 데이터베이스 구축",
+      "token_saver": false
+    },
+    {
+      "id": "playwright-e2e-runner",
+      "name": "Playwright E2E Web Tester",
+      "category": "testing",
+      "category_label": "테스팅/품질",
+      "description": "브라우저 화면 조작, E2E 시나리오 테스트 자동 생성, 스크린샷 비교 및 콘솔 에러 실시간 감지",
+      "agents": [
+        "Claude Code",
+        "Grok Bot"
+      ],
+      "stacks": [
+        "react",
+        "nextjs",
+        "vue",
+        "testing"
+      ],
+      "mcp": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@playwright/mcp-server"
+        ]
+      },
+      "claude_mcp_add": "claude mcp add playwright-e2e-runner -- npx -y @playwright/mcp-server",
+      "recommended_for": "웹 기능 회귀 테스트 및 브라우저 디버깅",
+      "token_saver": false
+    },
+    {
+      "id": "openapi-mock-inspector",
+      "name": "OpenAPI Mock & Contract Validator",
+      "category": "backend",
+      "category_label": "백엔드",
+      "description": "Swagger/OpenAPI 3.1 스펙 기반 목(Mock) API 실시간 서빙 및 프론트-백엔드 인터페이스 일치성 검증",
+      "agents": [
+        "Claude Code",
+        "Grok Bot"
+      ],
+      "stacks": [
+        "api",
+        "backend",
+        "typescript",
+        "rust"
+      ],
+      "mcp": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "mcp-openapi-mock"
+        ]
+      },
+      "claude_mcp_add": "claude mcp add openapi-mock-inspector -- npx -y mcp-openapi-mock",
+      "recommended_for": "백엔드 API 완성 전 프론트엔드 선행 개발",
+      "token_saver": false
+    },
+    {
+      "id": "rust-axum-scaffolder",
+      "name": "Rust Axum API Engineer",
+      "category": "backend",
+      "category_label": "백엔드",
+      "description": "고성능 Rust Axum 웹 프레임워크 라우터, 상태 관리(State), 미들웨어 및 비동기 Tokio 핸들러 생성",
+      "agents": [
+        "Claude Code",
+        "Cursor"
+      ],
+      "stacks": [
+        "rust",
+        "axum",
+        "backend"
+      ],
+      "mcp": {
+        "command": "cargo",
+        "args": [
+          "run",
+          "--bin",
+          "mcp-rust-axum"
+        ]
+      },
+      "claude_mcp_add": "claude mcp add rust-axum-scaffolder -- cargo run --bin mcp-rust-axum",
+      "recommended_for": "초고속 Rust 백엔드 서비스 개발",
+      "token_saver": false
+    },
+    {
+      "id": "docker-compose-scaffolder",
+      "name": "Docker Web Stack Orchestrator",
+      "category": "devops",
+      "category_label": "DevOps/배포",
+      "description": "웹앱 및 연동 서비스(Redis, DB, Nginx)의 최적화된 Dockerfile과 docker-compose.yml 자동 생성",
+      "agents": [
+        "Claude Code",
+        "Grok Bot"
+      ],
+      "stacks": [
+        "docker",
+        "devops",
+        "backend"
+      ],
+      "mcp": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "mcp-docker-compose"
+        ]
+      },
+      "claude_mcp_add": "claude mcp add docker-compose-scaffolder -- npx -y mcp-docker-compose",
+      "recommended_for": "컨테이너화 및 로컬 개발 환경 통일",
+      "token_saver": false
+    },
+    {
+      "id": "grok-security-sentinel",
+      "name": "Web Security & XSS Sentinel",
+      "category": "testing",
+      "category_label": "테스팅/품질",
+      "description": "웹앱 소스코드의 OWASP Top 10 취약점(XSS, CSRF, SQLi), 환경변수 누출 실시간 정적 분석",
+      "agents": [
+        "Grok Bot",
+        "Claude Code"
+      ],
+      "stacks": [
+        "security",
+        "react",
+        "nextjs",
+        "rust"
+      ],
+      "mcp": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "mcp-security-sentinel"
+        ]
+      },
+      "claude_mcp_add": "claude mcp add grok-security-sentinel -- npx -y mcp-security-sentinel",
+      "recommended_for": "배포 전 보안 취약점 사전 차단",
+      "token_saver": false
+    }
+  ]
+}
