@@ -176,8 +176,13 @@ if ($SkipClaude) {
             Write-Info "[dry-run] claude $($cliArgs -join ' ')"
             continue
         }
+        # 네이티브 명령의 stderr가 종료 오류로 승격되지 않도록 잠시 완화
+        $prevEap = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
         $out = & claude @cliArgs 2>&1
-        if ($LASTEXITCODE -eq 0) {
+        $code = $LASTEXITCODE
+        $ErrorActionPreference = $prevEap
+        if ($code -eq 0) {
             Write-Ok "등록: $name"
         } elseif ("$out" -match 'already') {
             Write-Info "이미 등록됨: $name"
